@@ -5,25 +5,25 @@ classdef FTT
     %   opt         - FTToption
     %   direction   - ALS direction, >0: built from left to right
     %                                <0: built from right to left
-    %   oneds       - data structure containing information for building
-    %                 one dimensional polynomial representation
-    %   cores       - nodal values or coefficent tensors of oned functions
-    %                 the dimension of the current core is organised as
-    %                 previous rank x oned{k}.num_nodes x current rank
-    %   interp_x    - interpolation coordinates for FTT
-    %   res_x       - interpolation coordinates for the residual
-    %   res_w       - interpolation weights for the residual
-    %   n_evals     - number of function evaluations in TT cross
+    %   oneds       - Data structure containing information for building
+    %                 one dimensional polynomial representation.
+    %   cores       - Nodal values or coefficent tensors of 1D functions
+    %                 the dimension of the current core is organised as:
+    %                 previous rank x oned{k}.num_nodes x current rank.
+    %   interp_x    - Interpolation coordinates for FTT.
+    %   res_x       - Interpolation coordinates for the residual.
+    %   res_w       - Interpolation weights for the residual.
+    %   n_evals     - Number of function evaluations in TT cross.
     %
     % FTT Methods:
-    %   cross       - run the TT cross, this is called by the constructor
-    %   eval        - evaluate FTT. The output is horizontally aligned.
-    %   eval_block  - evaluate FTT for either the first or last k variables.
+    %   cross       - Run the TT cross, this is called by the constructor.
+    %   eval        - Evaluate FTT. The output is horizontally aligned.
+    %   eval_block  - Evaluate FTT for either the first or last k variables.
     %                 The output is horizontally aligned.
-    %   round       - round the FTT cores
-    %   int         - integrate the entire FTT
-    %   int_block   - integrate a block of FTT cores
-    %   size        - size of the FTT
+    %   round       - Round the FTT cores.
+    %   int         - Integrate the entire FTT.
+    %   int_block   - Integrate a block of FTT cores.
+    %   size        - Size of the FTT.
     %
     %%%%%%%%%%%%%%%%%
     %

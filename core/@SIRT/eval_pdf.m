@@ -1,4 +1,4 @@
-function fx = eval_marginal_pdf(obj, x)
+function fx = eval_pdf(obj, x)
 % Evaluate the marginalise pdf represented by ftt
 %
 %   x   - input variables
