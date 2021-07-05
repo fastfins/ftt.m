@@ -1,6 +1,6 @@
 function fx = eval_block(obj, x, dir)
 % Evaluate the FTT for either the first or last k variables.
-%   f = eval_block(tt, x, dir)
+%   f = EVAL_BLOCK(tt, x, dir)
 %
 %   x   - input variables, k x n.
 %   dir - direction evlauation, >0: from left to right

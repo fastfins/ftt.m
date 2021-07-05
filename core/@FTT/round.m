@@ -1,5 +1,5 @@
 function obj = round(obj, thres)
-% Round the TT cores. tt = round(tt, tol)
+% Round the TT cores. tt = ROUND(tt, tol)
 % 
 %   tol - the truncation threshold of each SVD relative to the largest 
 %         singular value)

@@ -82,6 +82,9 @@ classdef FTT
     %   appr_tt = eval(tt, debug_x);
     %   figure; plot(exact(:) - appr_tt(:), 'x')
     %
+    %%%%%%%%%%%%%%%%%
+    %
+    % see also ONED and FTTOPTION
     
     properties
         opt FTToption

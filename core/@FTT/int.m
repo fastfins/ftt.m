@@ -1,5 +1,5 @@
 function z = int(obj)
-% Integrate the entire TT. z = int(tt)
+% Integrate the entire TT. z = INT(tt)
 
 d = length(obj.cores);
 if obj.direction > 0

@@ -1,5 +1,5 @@
 function fx = eval(obj, x, varargin)
-% Evaluate the ftt function. f = eval(tt, x, pt)
+% Evaluate the ftt function. f = EVAL(tt, x, pt)
 %
 %   x   - input variables, d x n.
 %   pt  - (optional) permuation index, where FTT is built for f(y),

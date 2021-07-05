@@ -1,5 +1,5 @@
 function ftt = int_block(obj, ind)
-% Integrate a block of FTT cores. tt = int_block(tt, ind)
+% Integrate a block of FTT cores. tt = INT_BLOCK(tt, ind)
 %
 %   ind - indices of coordinates will be integrated
 %   tt  - output FTT after integration
