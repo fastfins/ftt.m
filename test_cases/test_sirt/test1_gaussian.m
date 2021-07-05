@@ -31,13 +31,6 @@ for i = 1:4
     for j = 1:2
         tic;
         irts{i,j} = SIRT(func, d, polys{i}, opts{j}, 'debug_x', debug_x, 'sample_x', sample_x);
-        toc
-    end
-end
-
-for i = 1:4
-    for j = 1:2
-        tic;
         irts{i,j} = marginalise(irts{i,j}, 1);
         toc
     end

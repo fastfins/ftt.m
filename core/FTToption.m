@@ -64,7 +64,7 @@ classdef FTToption
         function obj = FTToption(varargin)
             p = inputParser;
             validScalarPosNum = @(x) isnumeric(x) && isscalar(x) && (x > 0);
-            validErrTol = @(x) isnumeric(x) && isscalar(x) && (x>0) && (x<1);
+            validErrTol = @(x) isnumeric(x) && isscalar(x) && (x>=0) && (x<1);
             %
             addParameter(p,'sqrt_flag',obj.defaultSQRTFlag,@(x) islogical(x) && isscalar(x));
             addParameter(p,'max_als',  obj.defaultMaxALS,  validScalarPosNum);
@@ -96,7 +96,7 @@ classdef FTToption
         function obj = update(obj, varargin)
             p = inputParser;
             validScalarPosNum = @(x) isnumeric(x) && isscalar(x) && (x > 0);
-            validErrTol = @(x) isnumeric(x) && isscalar(x) && (x>0) && (x<1);
+            validErrTol = @(x) isnumeric(x) && isscalar(x) && (x>=0) && (x<1);
             %
             addParameter(p,'sqrt_flag',obj.defaultSQRTFlag,@(x) islogical(x) && isscalar(x));
             addParameter(p,'max_als',  obj.defaultMaxALS,  validScalarPosNum);

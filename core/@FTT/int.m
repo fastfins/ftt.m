@@ -15,7 +15,7 @@ if obj.direction > 0
         % k-th coordinate for obtaining the integrated function over the
         % last d-k dimensions, ys{k} is a rk-1 by nx matrix
         ys = reshape(reshape(obj.cores{k}, rkm*nx, rk)*figeqk, rkm, nx);
-        figeqk  = integral(obj.oneds{k}, ys')';
+        figeqk = integral(obj.oneds{k}, ys')';
     end
     z = figeqk;
 else
@@ -28,7 +28,7 @@ else
         % push the previous dimenion into the current ftt
         % ys{k} is a nx by rk matrix
         ys = reshape(fileqk*reshape(obj.cores{k}, rkm, nx*rk), nx, rk);
-        fileqk  = integral(obj.oneds{k}, ys);
+        fileqk = integral(obj.oneds{k}, ys);
     end
     z = fileqk;
 end
