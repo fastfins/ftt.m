@@ -136,7 +136,8 @@ classdef SIRT < FTT
         % Marginalise the pdf represented by ftt dimension by dimension
         
         function obj = SIRT(func, d, arg, varargin)
-            % Setup data structure used for IRT
+            % Call FTT constructor to build the FTT and setup data 
+            % structures for SIRT. Need to run marginalise after this.
             
             defaultErrTol = 1E-8;
             %
