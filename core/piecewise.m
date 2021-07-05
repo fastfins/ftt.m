@@ -4,7 +4,7 @@ classdef piecewise < oned
         gs % ghostsize
         bc % boundary condition
         %
-        grid(1,:) 
+        grid(:,1) 
         %
         num_elems 
         elem_size 

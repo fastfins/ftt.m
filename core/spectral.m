@@ -1,13 +1,13 @@
 classdef spectral < oned
     
     properties
-        ref_nodes(1,:) 
-        weights(:,:) 
+        ref_nodes(:,1) 
+        weights(:,1) 
         %
         % for evaluating the polynomial
         n(1,:) % only for Chebyshev
         normalising(1,:) 
-        omegas(:,:) 
+        omegas(:,1) 
         basis2node(:,:) 
         node2basis(:,:) 
         name = 'spectral'
@@ -80,13 +80,13 @@ classdef spectral < oned
         
         function R = mass_r(obj, interp_w)
             %Evaluate the right factor of the one dimensional mass matrix
-            R = interp_w.*sqrt(obj.weights./obj.omegas);
+            R = (sqrt(obj.weights./obj.omegas).*obj.basis2node)*interp_w;
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         function f_int = integral(obj, interp_w)
-            f_int = sum( (obj.weights./obj.omegas).*interp_w, 1 );
+            f_int = ((obj.weights./obj.omegas)'*obj.basis2node)*interp_w;
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

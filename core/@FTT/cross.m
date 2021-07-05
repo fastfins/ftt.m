@@ -33,7 +33,7 @@ if isempty(obj.cores)
     end
     obj.cores{d} = zeros(obj.opt.init_rank, obj.oneds{d}.num_nodes, 1);
     % initialise the residual blocks for AMEN
-    if strcmp(obj.opt.method, 'amen')
+    if strcmp(obj.opt.tt_method, 'amen')
         if size(sample_x, 2) < obj.opt.kick_rank
             disp('Not enough number of user provided samples to enrich ftt')
             obj.res_x{d} = sample_domain(obj.oneds{d}, obj.opt.kick_rank);
@@ -51,9 +51,11 @@ if isempty(obj.cores)
             obj.res_w{k} = randn(obj.opt.init_rank, obj.opt.kick_rank);
         end
     end
+else
+    obj.direction = -obj.direction;
 end
 % reinitialise the residual blocks for AMEN
-if strcmp(obj.opt.method, 'amen') && isempty(obj.res_w)
+if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_w)
     if obj.direction < 0 % direction has already been flipped
         for k = 1:(d-1)
             obj.res_w{k} = randn(obj.opt.kick_rank, size(obj.cores{k},3));
@@ -80,7 +82,7 @@ while true % run ALS
         ind = d:-1:2;
     end
     %
-    switch obj.opt.method
+    switch obj.opt.tt_method
         case {'random'}
             % at the head, update the random enrichment set
             if size(sample_x, 2) < obj.opt.kick_rank
@@ -111,7 +113,7 @@ while true % run ALS
                     % push couple matrix to the right
                     [obj.cores{k}, obj.interp_x{k}, obj.cores{k+1}] = FTT.build_basis_svd(obj.oneds{k},...
                         Jx_left, obj.cores{k+1}, cat(3,F,Fe), ...
-                        obj.direction, obj.opt.int_method, obj.opt.loc_err_tol, obj.opt.max_rank);
+                        obj.direction, obj.opt.int_method, obj.opt.local_tol, obj.opt.max_rank);
                     rs(k) = size(obj.cores{k}, 3);
                 else
                     if k == d
@@ -130,7 +132,7 @@ while true % run ALS
                     % push couple matrix to the right
                     [obj.cores{k}, obj.interp_x{k}, obj.cores{k-1}] = FTT.build_basis_svd(obj.oneds{k},...
                         Jx_right, obj.cores{k-1}, cat(1,F,Fe), ...
-                        obj.direction, obj.opt.int_method, obj.opt.loc_err_tol, obj.opt.max_rank);
+                        obj.direction, obj.opt.int_method, obj.opt.local_tol, obj.opt.max_rank);
                     rs(k-1) = size(obj.cores{k}, 1);
                 end
             end
@@ -163,7 +165,7 @@ while true % run ALS
                     end
                     [obj.cores{k}, obj.interp_x{k}, obj.res_w{k}, obj.res_x{k}, obj.cores{k+1}] = FTT.build_basis_amen(...
                         obj.oneds{k}, Jx_left, Jr_left, Rw_left, obj.res_w{k+1}, obj.cores{k+1}, F, Fu, Fr, ...
-                        obj.direction, obj.opt.int_method, obj.opt.loc_err_tol, obj.opt.max_rank, obj.opt.kick_rank);
+                        obj.direction, obj.opt.int_method, obj.opt.local_tol, obj.opt.max_rank, obj.opt.kick_rank);
                     rs(k) = size(obj.cores{k}, 3);
                 else
                     if k == d
@@ -192,7 +194,7 @@ while true % run ALS
                     end
                     [obj.cores{k}, obj.interp_x{k}, obj.res_w{k}, obj.res_x{k}, obj.cores{k-1}] = FTT.build_basis_amen(...
                         obj.oneds{k}, Jx_right, Jr_right, obj.res_w{k-1}, Rw_right, obj.cores{k-1}, F, Fu, Fr, ...
-                        obj.direction, obj.opt.int_method, obj.opt.loc_err_tol, obj.opt.max_rank, obj.opt.kick_rank);
+                        obj.direction, obj.opt.int_method, obj.opt.local_tol, obj.opt.max_rank, obj.opt.kick_rank);
                     rs(k-1) = size(obj.cores{k}, 1);
                 end
             end
@@ -215,7 +217,7 @@ while true % run ALS
     end
     fprintf('\n');
     %
-    if als_iter == obj.opt.max_als || max(errs) < obj.opt.err_tol
+    if als_iter == obj.opt.max_als || max(errs) < obj.opt.als_tol
         disp('ALS completed')
         break;
     else

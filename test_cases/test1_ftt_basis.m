@@ -13,7 +13,7 @@ func1 = @(x) sqrt(1./sum(1E-5+x.^2,1));
 func2 = @(x) [sqrt(1./sum(1E-5+x.^2,1)); sqrt(1./sum(1E-2+x.^2,1))];
 func3 = @(x) [(1 + sum(x,1)).^(-d-1); exp( - sum(abs(x - 0.5), 1)); cos( sum(x.^2,1) )];
 
-func = func1;
+func = func2;
 
 %%%%
 
@@ -24,8 +24,8 @@ for k = 1:d
     debug_x(k,:) = sample_domain(poly1, debug_size);
 end
 
-opt1 = FTToption('max_als', 5, 'err_tol', 1E-8, 'loc_err_tol', 1E-10, 'kick_rank', 2, 'init_rank', 6, 'max_rank', 12);
-opt2 = FTToption('method', 'random', 'max_als', 5, 'err_tol', 1E-8, 'loc_err_tol', 1E-10, 'kick_rank', 2, 'init_rank', 6, 'max_rank', 12);
+opt1 = FTToption('max_als', 5, 'als_tol', 1E-8, 'local_tol', 1E-10, 'kick_rank', 2, 'init_rank', 6, 'max_rank', 12);
+opt2 = FTToption('tt_method', 'random', 'max_als', 5, 'als_tol', 1E-8, 'local_tol', 1E-10, 'kick_rank', 2, 'init_rank', 6, 'max_rank', 12);
 
 polys = {poly1, poly2, poly3};
 for i = 1:3

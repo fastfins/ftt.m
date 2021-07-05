@@ -1,7 +1,7 @@
 classdef SIRT < FTT
     
     properties
-        irt_dir
+        marginal_direction
         z
         ys
         ms
@@ -14,7 +14,7 @@ classdef SIRT < FTT
             nn  = oned.num_nodes;
             nx  = length(x);
             % evaluate the updated basis function
-            tmp = eval(oned, x(:), reshape(permute(core, [2,1,3]), nn, []));
+            tmp = eval(oned, reshape(permute(core, [2,1,3]), nn, []), x(:));
             T   = reshape(permute(reshape(tmp, nx, rkm, []), [2,1,3]), rkm*nx, []);
         end
         
@@ -23,7 +23,7 @@ classdef SIRT < FTT
             nn  = oned.num_nodes;
             nx  = length(x);
             % evaluate the updated basis function
-            tmp = eval_deri(oned, x(:), reshape(permute(core, [2,1,3]), nn, []));
+            tmp = eval_deri(oned, reshape(permute(core, [2,1,3]), nn, []), x(:));
             T   = reshape(permute(reshape(tmp, nx, rkm, []), [2,1,3]), rkm*nx, []);
         end
         
@@ -32,7 +32,7 @@ classdef SIRT < FTT
             nn  = oned.num_nodes;
             nx  = length(x);
             % evaluate the updated basis function
-            tmp = eval(oned, x(:), reshape(permute(core, [2,3,1]), nn, []));
+            tmp = eval(oned, reshape(permute(core, [2,3,1]), nn, []), x(:));
             T   = reshape(permute(reshape(tmp, nx, rk, []), [2,1,3]), rk*nx, []);
         end
         
@@ -41,11 +41,11 @@ classdef SIRT < FTT
             nn  = oned.num_nodes;
             nx  = length(x);
             % evaluate the updated basis function
-            tmp = evalderi(oned, x(:), reshape(permute(core, [2,3,1]), nn, []));
+            tmp = evalderi(oned, reshape(permute(core, [2,3,1]), nn, []), x(:));
             T   = reshape(permute(reshape(tmp, nx, rk, []), [2,1,3]), rk*nx, []);
         end
         
-        [z,ys,ms] = cumint(ftt, dir)
+        % [z,ys,ms] = cumint(ftt, dir)
         % Marginalise the pdf represented by ftt dimension by dimension
         
     end
@@ -68,19 +68,22 @@ classdef SIRT < FTT
         fx = eval_marginal_pdf(obj, x)
         % Evaluate the marginalise pdf represented by ftt
 
-        function obj = IRT(ftt, varargin)
+        obj = marginalise(obj, dir) 
+        % Marginalise the pdf represented by ftt dimension by dimension
+        
+        function obj = SIRT(func, d, arg, varargin)
             % Setup data structure used for IRT
-            %
-            %   ftt - A given function tensor train
-            %
-            %   err_tol - error tolerance for evaluating the IRT
             
-            obj = ftt;
+            defaultErrTol = 1E-8;
             %
-            [obj.z, obj.ys, obj.ms] = SIRT.cumint(obj, obj.direction);
+            obj@FTT(func, d, arg, varargin{:})
+            %
+            if strcmp(obj.opt.tt_method, 'amen')
+                obj = round(obj);
+            end
             obj.oned_cdfs = cell(size(obj.oneds));
             for i = 1:length(obj.oneds)
-                obj.oned_cdfs{i} = CDFconstructor(obj.oneds{i}, varargin{:});
+                obj.oned_cdfs{i} = CDFconstructor(obj.oneds{i}, defaultErrTol);
             end
         end
     end

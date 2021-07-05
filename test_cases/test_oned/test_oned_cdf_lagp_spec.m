@@ -10,10 +10,10 @@ lag = Lagrangep(6, 4, [-4, 4]);
 lag_cdf = LagrangepCDF(lag);
 
 fl = pdf2(lag.nodes);
-pl = eval(lag, fl, lag_cdf.nodes);
+pl = eval(lag, fl(:), lag_cdf.nodes);
 
 xs = linspace(lag.domain(1), lag.domain(2), 1000);
-fi = eval(lag, fl, xs);
+fi = eval(lag, fl(:), xs);
 Fi = eval_cdf(lag_cdf, pl, xs);
 
 z = rand(5E5,1);
@@ -34,10 +34,10 @@ lag = Lagrangep(6, 5, [-5, 5], 'ghost_size', 1);
 lag_cdf = LagrangepCDF(lag);
 
 fl = pdf2(lag.nodes).^0.5;
-pl = eval(lag, fl, lag_cdf.nodes).^2;
+pl = eval(lag, fl(:), lag_cdf.nodes).^2;
 
 xs = linspace(lag.domain(1), lag.domain(2), 10000);
-fi = eval(lag, fl, xs).^2;
+fi = eval(lag, fl(:), xs).^2;
 Fi = eval_cdf(lag_cdf, pl, xs);
 
 z = rand(5E5,1);
@@ -59,12 +59,12 @@ poly = Legendre(8, [-6, 6]);
 poly_cdf = ChebyshevCDF(poly);
 
 fp = poly.node2basis*pdf2(poly.nodes(:));
-pp = eval(poly, fp, poly_cdf.nodes(:));
+pp = eval(poly, fp(:), poly_cdf.nodes(:));
 
 dp = pdf2cdf(poly_cdf, pp);
 
 xs = linspace(poly.domain(1), poly.domain(2), 10000);
-fi = eval(poly, fp, xs);
+fi = eval(poly, fp(:), xs);
 Fi = eval_cdf(poly_cdf, pp, xs);
 
 figure
@@ -79,12 +79,12 @@ poly = Legendre(8, [-6, 6]);
 poly_cdf = ChebyshevCDF(poly);
 
 fp = poly.node2basis*( pdf2(poly.nodes(:)).^(0.5) );
-pp = eval(poly, fp, poly_cdf.nodes(:)).^2;
+pp = eval(poly, fp(:), poly_cdf.nodes(:)).^2;
 %
 dp = pdf2cdf(poly_cdf, pp);
 
 xs = linspace(poly.domain(1), poly.domain(2), 1000);
-fi = eval(poly, fp, xs).^2;
+fi = eval(poly, fp(:), xs).^2;
 Fi = eval_cdf(poly_cdf, pp, xs);
 
 
@@ -108,13 +108,13 @@ lag = Lagrangep(6, 4, [-5, 5], 'ghost_size', 1);
 lag_cdf = LagrangepCDF(lag);
 
 fl = pdf2(lag.nodes).^(0.5);
-pl = eval(lag, fl, lag_cdf.nodes).^2;
+pl = eval(lag, fl(:), lag_cdf.nodes).^2;
 %
 pl = repmat(pl, 1, n);
 dl = pdf2cdf(lag_cdf, pl);
 
 xs = linspace(lag.domain(1), lag.domain(2), n);
-fi = eval(lag, fl, xs).^2;
+fi = eval(lag, fl(:), xs).^2;
 Fi = eval_cdf(lag_cdf, pl, xs);
 
 z = rand(n,1);
@@ -134,13 +134,13 @@ poly = Legendre(8, [-6, 6]);
 poly_cdf = ChebyshevCDF(poly);
 
 fp = poly.node2basis*( pdf2(poly.nodes(:)).^(0.5) );
-pp = eval(poly, fp, poly_cdf.nodes(:)).^2;
+pp = eval(poly, fp(:), poly_cdf.nodes(:)).^2;
 pp = repmat(pp, 1, n);
 
 dp = pdf2cdf(poly_cdf, pp);
 
 xs = linspace(poly.domain(1), poly.domain(2), n);
-fi = eval(poly, fp, xs).^2;
+fi = eval(poly, fp(:), xs).^2;
 Fi = eval_cdf(poly_cdf, pp, xs);
 
 z = rand(n,1);

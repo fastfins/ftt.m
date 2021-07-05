@@ -1,4 +1,4 @@
-function cdf = CDFconstuctor(poly, varargin)
+function cdf = CDFconstructor(poly, varargin)
 
 switch get_name(poly)
     case{'Lagrange1'}

@@ -5,7 +5,7 @@ classdef oned
         order
         %
         num_nodes
-        nodes(1,:)
+        nodes(:,1)
     end
     
     methods (Abstract)

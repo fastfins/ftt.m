@@ -28,10 +28,10 @@ function [r,f] = eval_irt(obj, z)
 
 
 d = length(obj.cores);
-[dz,n] = size(z,2);
+[dz,n] = size(z);
 r = zeros(dz,n);
 
-if obj.dir > 0 % from left to right
+if obj.marginal_direction > 0 % from left to right
     frl = ones(n,1);
     for k = 1:dz
         rkm = size(obj.cores{k}, 1);

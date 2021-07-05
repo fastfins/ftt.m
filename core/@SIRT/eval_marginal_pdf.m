@@ -5,9 +5,9 @@ function fx = eval_marginal_pdf(obj, x)
 %
 %   fx  - marginal density at x
 
-if obj.dir > 0
+if obj.marginal_direction > 0
     % marginalised from the right
-    fxl = eval_block(obj, x, obj.dir);
+    fxl = eval_block(obj, x, obj.marginal_direction);
     if size(x,1) < length(obj.cores)
         fx = sum((fxl*obj.ms{dz}).^2, 2)'/obj.z;
     else
@@ -15,7 +15,7 @@ if obj.dir > 0
     end
 else
     % marginalised from the left
-    fxg = eval_block(obj, x, obj.dir);
+    fxg = eval_block(obj, x, obj.marginal_direction);
     if size(x,1) < length(obj.cores)
         ie = (d-dz)+1;
         fx = sum((obj.ms{ie}*fxg).^2, 1)/obj.z;

@@ -2,7 +2,7 @@ function obj = round(obj, thres)
 % round the TT cores
 %
 if nargin == 1
-    thres = obj.opt.loc_err_tol;
+    thres = obj.opt.local_tol;
 end
 [d,rs,~] = size(obj);
 %
@@ -38,7 +38,7 @@ for k = ind
     end
 end
 
-if strcmp (obj.opt.method, 'amen')
+if strcmp (obj.opt.tt_method, 'amen')
     obj.res_w = [];
 end
 

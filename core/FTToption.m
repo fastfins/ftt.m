@@ -14,13 +14,13 @@ classdef FTToption
     %
     %   max_als     - max number of ALS iterations. Default is 5
     %
-    %   err_tol     - tolerance for terminating ALS. Default is 1E-2
+    %   als_tol     - tolerance for terminating ALS. Default is 1E-2
     %
-    %   loc_err_tol - truncation tolerance of local SVD, default is 1E-10.
+    %   local_tol   - truncation tolerance of local SVD, default is 1E-10.
     %                 The SVD is truncated at singular values that is about
     %                 1E-10 relative to the largest singular value
     %
-    %   method      - construction method. Default is option is 'amen'. 
+    %   tt_method   - construction method. Default is option is 'amen'. 
     %                 Options are 'amen' and 'random'.
     %
     %   int_method  - interpolation method for choosing cross indices. 
@@ -36,26 +36,26 @@ classdef FTToption
     
     properties
         sqrt_flag
-        loc_err_tol
+        local_tol
         max_rank
         init_rank
         kick_rank
         max_als
-        err_tol
-        method
+        als_tol
+        tt_method
         int_method
     end
     
     properties (Access = private, Constant = true)
         defaultSQRTFlag = false;
         defaultMaxALS   = 5;
-        defaultErrTol   = 1E-2;
+        defaultALSTol   = 1E-2;
         defaultInitRank = 10;
-        defaultKickRank = 3;
+        defaultKickRank = 2;
         defaultMaxRank  = 20;
-        defaultLocErrTol  = 1E-10;
-        defaultMethod   = 'amen';
-        expectedMethod  = {'random','amen'};
+        defaultLocTol   = 1E-10;
+        defaultTTMethod = 'amen';
+        expectedTTMethod  = {'random','amen'};
         defaultIntM     = 'MaxVol';
         expectedIntM    = {'QDEIM','WDEIM','MaxVol'};
     end
@@ -68,13 +68,13 @@ classdef FTToption
             %
             addParameter(p,'sqrt_flag',obj.defaultSQRTFlag,@(x) islogical(x) && isscalar(x));
             addParameter(p,'max_als',  obj.defaultMaxALS,  validScalarPosNum);
-            addParameter(p,'err_tol',  obj.defaultErrTol,  validErrTol);
+            addParameter(p,'als_tol',  obj.defaultALSTol,  validErrTol);
             addParameter(p,'init_rank',obj.defaultInitRank,validScalarPosNum);
             addParameter(p,'kick_rank',obj.defaultKickRank,validScalarPosNum);
             addParameter(p,'max_rank', obj.defaultMaxRank, validScalarPosNum);
-            addParameter(p,'loc_err_tol', obj.defaultLocErrTol,validErrTol);
-            addParameter(p,'method',  obj.defaultMethod, ...   
-                @(x) any(validatestring(x,obj.expectedMethod)));
+            addParameter(p,'local_tol',obj.defaultLocTol,  validErrTol);
+            addParameter(p,'tt_method',obj.defaultTTMethod, ...   
+                @(x) any(validatestring(x,obj.expectedTTMethod)));
             addParameter(p,'int_method',  obj.defaultIntM, ...   
                 @(x) any(validatestring(x,obj.expectedIntM)));
             %
@@ -84,12 +84,12 @@ classdef FTToption
             %
             obj.sqrt_flag = tmp.sqrt_flag;
             obj.max_als   = tmp.max_als;
-            obj.err_tol   = tmp.err_tol;
+            obj.als_tol   = tmp.als_tol;
             obj.init_rank = tmp.init_rank;
             obj.kick_rank = tmp.kick_rank;
             obj.max_rank  = tmp.max_rank;
-            obj.loc_err_tol = tmp.loc_err_tol;
-            obj.method      = tmp.method;
+            obj.local_tol = tmp.local_tol;
+            obj.tt_method = tmp.tt_method;
             obj.int_method  = tmp.int_method;
         end
         
@@ -100,13 +100,13 @@ classdef FTToption
             %
             addParameter(p,'sqrt_flag',obj.defaultSQRTFlag,@(x) islogical(x) && isscalar(x));
             addParameter(p,'max_als',  obj.defaultMaxALS,  validScalarPosNum);
-            addParameter(p,'err_tol',  obj.defaultErrTol,  validErrTol);
+            addParameter(p,'als_tol',  obj.defaultALSTol,  validErrTol);
             addParameter(p,'init_rank',obj.defaultInitRank,validScalarPosNum);
             addParameter(p,'kick_rank',obj.defaultKickRank,validScalarPosNum);
             addParameter(p,'max_rank', obj.defaultMaxRank, validScalarPosNum);
-            addParameter(p,'loc_err_tol', obj.defaultLocErrTol,validErrTol);
-            addParameter(p,'method',  obj.defaultMethod, ...   
-                @(x) any(validatestring(x,obj.expectedMethod)));
+            addParameter(p,'local_tol',obj.defaultLocTol,  validErrTol);
+            addParameter(p,'tt_method',obj.defaultTTMethod, ...   
+                @(x) any(validatestring(x,obj.expectedTTMethod)));
             addParameter(p,'int_method',  obj.defaultIntM,... 
                 @(x) any(validatestring(x,obj.expectedIntM)));
             %
@@ -121,8 +121,8 @@ classdef FTToption
             if ~ismember('max_als',cellstr(p.UsingDefaults))
                 obj.max_als = tmp.max_als;
             end
-            if ~ismember('err_tol',cellstr(p.UsingDefaults))
-                obj.err_tol = tmp.err_tol;
+            if ~ismember('als_tol',cellstr(p.UsingDefaults))
+                obj.als_tol = tmp.als_tol;
             end
             if ~ismember('init_rank',cellstr(p.UsingDefaults))
                 obj.init_rank = tmp.init_rank;
@@ -133,11 +133,11 @@ classdef FTToption
             if ~ismember('max_rank',cellstr(p.UsingDefaults))
                 obj.max_rank = tmp.max_rank;
             end
-            if ~ismember('loc_err_tol',cellstr(p.UsingDefaults))
-                obj.loc_err_tol = tmp.loc_err_tol;
+            if ~ismember('local_tol',cellstr(p.UsingDefaults))
+                obj.local_tol = tmp.local_tol;
             end
-            if ~ismember('method',cellstr(p.UsingDefaults))
-                obj.method = tmp.method;
+            if ~ismember('tt_method',cellstr(p.UsingDefaults))
+                obj.tt_method = tmp.tt_method;
             end
             if ~ismember('int_method',cellstr(p.UsingDefaults))
                 obj.int_method = tmp.int_method;

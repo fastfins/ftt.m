@@ -28,12 +28,12 @@ function z = eval_rt(obj, r)
 %
 
 d = length(obj.cores);
-[dr,n] = size(r,2);
+[dr,n] = size(r);
 z = zeros(dr,n);
 
-if obj.dir > 0 % from left to right
+if obj.marginal_direction > 0 % from left to right
     frl = ones(n,1);
-    for k = 1:d
+    for k = 1:dr
         rkm = size(obj.cores{k}, 1);
         nc  = obj.oned_cdfs{k}.num_nodes;
         %
@@ -52,7 +52,7 @@ if obj.dir > 0 % from left to right
     end
 else % from right to left
     frg = ones(1,n);
-    ie  = (d-dz)+1;
+    ie  = (d-dr)+1;
     for k = d:-1:ie
         ck  = k-ie+1;
         rk  = size(obj.cores{k}, 3);

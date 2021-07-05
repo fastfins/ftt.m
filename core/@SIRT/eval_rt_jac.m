@@ -15,7 +15,7 @@ if size(r,1) ~= d
 end
 J = zeros(d,n*d);
 
-if obj.dir > 0 % from left to right
+if obj.marginal_direction > 0 % from left to right
     % function value of each block
     block_ftt = cell(d,1);
     block_mar = cell(d,1);

@@ -52,7 +52,7 @@ end
 r = zeros(size(z));
 
 % first compute the marginal
-if obj.dir > 0
+if obj.marginal_direction > 0
     %from the last dimension, marginalise to the first
     %order of the samples (x, r)
     %first evaluate the marginal for x

@@ -17,8 +17,6 @@ classdef FTT
     %
     %   interp_x{x} - interpolation coordinates
     %
-    %   isrounded   - indicate if the TT is rounded after construction
-    %
     %
     % FTToption Methods:
     %
@@ -172,15 +170,20 @@ classdef FTT
             sample_x    = p.Results.sample_x;
             debug_x     = p.Results.debug_x;
             %
-            if isa(arg, 'cell')
-                obj.oneds = arg;
-                obj.cores = [];
-                obj.res_x = [];
-                obj.res_w = [];
+            if isa(arg, 'FTT')
+                obj = arg;
             else
-                if isa(arg, 'FTT')
-                    obj = arg;
-                    obj.direction = -obj.direction;
+                obj.oneds = cell(d,1);
+                if isa(arg, 'cell')
+                    for k = 1:d
+                        if ~isa(arg{k}, 'oned')
+                            error('wrong type of argument')
+                        end
+                        obj.oneds{k} = arg{k};
+                    end
+                    obj.cores = [];
+                    obj.res_x = [];
+                    obj.res_w = [];
                 elseif isa(arg, 'oned')
                     for k = 1:d
                         obj.oneds{k} = arg;
