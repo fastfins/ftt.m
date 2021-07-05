@@ -5,6 +5,7 @@ function ftt = int_block(obj, ind)
 %
 %   ftt - output TT after integration
 %
+
 ftt = obj;
 d = length(ftt.cores);
 %
