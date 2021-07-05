@@ -2,35 +2,24 @@ classdef FTToption
     % Set the options for constructing functional tensor train
     %
     % FTToption Properties:
-    %
     %   sqrt_flag   - a flag indicating if compute the sqrt of the input 
     %                 function. Default: false
-    %
     %   max_rank    - max rank of each core, default is 20
-    %
     %   init_rank   - rank of the initial tensor train, default is 10
-    %
     %   kick_rank   - rank of the enrichment sample size, default is 3
-    %
     %   max_als     - max number of ALS iterations. Default is 5
-    %
     %   als_tol     - tolerance for terminating ALS. Default is 1E-2
-    %
     %   local_tol   - truncation tolerance of local SVD, default is 1E-10.
     %                 The SVD is truncated at singular values that is about
     %                 1E-10 relative to the largest singular value
-    %
     %   tt_method   - construction method. Default is option is 'amen'. 
     %                 Options are 'amen' and 'random'.
-    %
     %   int_method  - interpolation method for choosing cross indices. 
     %                 Default is 'MaxVol', over sampling is not implemented
     %
     % FTToption Methods:
-    %
     %    FTToption  - constructor. If no parameter is passed in, it returns 
     %                 the default obj.
-    %
     %    update     - update options of an object
     %
     
