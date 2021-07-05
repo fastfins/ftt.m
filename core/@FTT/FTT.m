@@ -1,72 +1,86 @@
 classdef FTT
-    % FTT abstract class, need to use either FTTamen or FTTrand
+    % FTT class
     %
     % FTT Properties:
-    %
     %   opt         - FTToption
-    %
     %   direction   - ALS direction, >0: built from left to right
     %                                <0: built from right to left
-    %
-    %   oneds{k}    - data structure containing information for building
+    %   oneds       - data structure containing information for building
     %                 one dimensional polynomial representation
-    %
-    %   cores{k}    - nodal values or coefficent tensors of oned functions
+    %   cores       - nodal values or coefficent tensors of oned functions
     %                 the dimension of the current core is organised as
     %                 previous rank x oned{k}.num_nodes x current rank
+    %   interp_x    - interpolation coordinates for FTT
+    %   res_x       - interpolation coordinates for the residual
+    %   res_w       - interpolation weights for the residual
+    %   n_evals     - number of function evaluations in TT cross
     %
-    %   interp_x{x} - interpolation coordinates
-    %
-    %
-    % FTToption Methods:
-    %
-    %   eval        - evaluate fTT. The output is horizontally aligned.
-    %
-    %   eval_block  - evaluate fTT for either the first or last k variables.
+    % FTT Methods:
+    %   cross       - run the TT cross, this is called by the constructor
+    %   eval        - evaluate FTT. The output is horizontally aligned.
+    %   eval_block  - evaluate FTT for either the first or last k variables.
     %                 The output is horizontally aligned.
-    %
-    %   round       - round the TT cores
-    %
-    %   int         - integrate the entire TT
-    %
-    %   int_block   - integrate a block of TT cores
-    %
-    %   size        - size of the TT
+    %   round       - round the FTT cores
+    %   int         - integrate the entire FTT
+    %   int_block   - integrate a block of FTT cores
+    %   size        - size of the FTT
     %
     %%%%%%%%%%%%%%%%%
     %
-    % Example (vector function outputs, m = 2):
+    % Example 1: (vector function outputs, m = 2):
     %
-    % poly = setup_oned(5, 'type', 'Lagrange', 'lag_elems', 10, 'ghost_size', 1E-10);
-    % func = @(x) [sqrt(1./sum(1E-5+x.^2,1)); sqrt(1./sum(1E-2+x.^2,1))];
-    % d    = 10;
+    % % Step 1: speficy the target function 
+    %   func = @(x) [sqrt(1./sum(1E-5+x.^2,1)); sqrt(1./sum(1E-2+x.^2,1))];
+    %   d = 10; % dimensionality of the input
     %
-    % debug_size = 1E4;
-    % debug_x = zeros(d, debug_size);
-    % for k = 1:d
-    %     debug_x(k,:) = sample_oned_domain(poly, debug_size);
-    % end
+    % % Step 2: setup the Legendre basis polynomial with order 20 in 
+    % % domain [0,1]
+    %   poly = Legendre(20, [0,1]);
     %
-    % % use alternating energy enrichment (AMEN)
-    % opt1 = ftt_options('method', 'AMEN', 'oned_ref', poly, ...
-    %     'err_tol', 1E-8, 'loc_err_tol', 1E-10, 'max_rank', 50);
-    % ftt1 = build_ftt(func, d, [], opt1, 'debug_x', debug_x);
+    % % Step 3: use alternating energy enrichment (AMEN), default option
+    %   opt = FTToption('max_als', 5, 'als_tol', 1E-8, 'local_tol', 1E-10, ...
+    %           'kick_rank', 2, 'init_rank', 6, 'max_rank', 12);
+    % % Optional: debug samples
+    %   debug_size = 1E4;
+    %   debug_x = zeros(d, debug_size);
+    %   for k = 1:d
+    %       debug_x(k,:) = sample_domain(poly, debug_size);
+    %   end
     %
-    % % use random enrichment
-    % opt2 = ftt_options('method', 'Random', 'oned_ref', poly, ...
-    %     'err_tol', 1E-8, 'loc_err_tol', 1E-10, 'max_rank', 50);
-    % ftt2 = build_ftt(func, d, [], opt2, 'debug_x', debug_x);
+    % % Step 4: build FTT
+    %   tt =  FTT(func, d, poly, opt, 'debug_x', debug_x);
     %
-    % % evaluate the function and its factorisations
-    % exact   = func(debug_x);
-    % approx1 = eval_ftt(ftt1, debug_x);
-    % approx2 = eval_ftt(ftt2, debug_x);
-    % % plot the error
-    % figure
-    % plot(exact(:) - approx1(:), 'x')
-    % hold on
-    % plot(exact(:) - approx2(:), '.')
+    % % Step 5: evaluate the function and its factorisation
+    %   exact   = func(debug_x);
+    %   appr_tt = eval(tt, debug_x);
+    %   figure; plot(exact(:) - appr_tt(:), 'x')
     %
+    % % Step 6: round the FTT by truncation local SVD. Here 1E-4 is the 
+    % % truncation threshold of each SVD (relative to the largest singular
+    % % value)
+    %   ttr = round(tt, 1E-4); 
+    %   appr_tt = eval(ttr, debug_x);
+    %   figure; plot(exact(:) - appr_tt(:), 'x')
+    %   
+    %%%%%%%%%%%%%%%%%
+    %
+    % Example 2: (use the func and debug samples defined above)
+    %
+    % % Alternative Lagrange basis function, with order 5 and 4 elements
+    %   poly = Lagrangep(5, 4, [0,1], 'ghost_size', 1E-10);
+    %
+    % % Alternative option use random enrichment
+    %   opt = FTToption('tt_method', 'random', 'max_als', 5, ...
+    %           'als_tol', 1E-8, 'local_tol', 1E-10, 'kick_rank', 2, ...
+    %           'init_rank', 6, 'max_rank', 12);
+    %
+    % % Build FTT
+    %   tt =  FTT(func, d, poly, opt, 'debug_x', debug_x);    
+    %
+    % % Evaluate the function and its factorisation
+    %   exact   = func(debug_x);
+    %   appr_tt = eval(tt, debug_x);
+    %   figure; plot(exact(:) - appr_tt(:), 'x')
     %
     
     properties
@@ -75,6 +89,7 @@ classdef FTT
         oneds
         interp_x
         direction
+        n_evals
         res_x
         res_w
     end
@@ -131,18 +146,13 @@ classdef FTT
         function obj = FTT(func, d, arg, varargin)
             % Construct tensor train for a function mapping from R^d to R^m.
             %
-            % Inputs:
-            %
             %   func - a function (R^d to R^m) that take inputs as a dxn
             %          matrix and returns mxn vector
-            %
             %   d    - dimension of the input variable
-            %
             %   arg  - either an existing ftt used as the initial guess, or
             %          a set of one dimensional bases for discretising the
             %          function. If only one set of basis is supplied, each
             %          coordinate is discretised using the same basis
-            %
             %   opt  - FTT options
             %
             

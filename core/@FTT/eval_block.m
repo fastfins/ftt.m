@@ -1,10 +1,11 @@
 function fx = eval_block(obj, x, dir)
 % Evaluate the FTT for either the first or last k variables.
-% The output is horizontally aligned.
+%   f = eval_block(tt, x, dir)
 %
-%   x  - input variables, dxn.
-%
-%   fx - function values at x, mxn
+%   x   - input variables, k x n.
+%   dir - direction evlauation, >0: from left to right
+%                               <0: from right to left
+%   f   - function values at x, m x n
 %
 d   = length(obj.cores);
 k   = size(x, 1);

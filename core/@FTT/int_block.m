@@ -1,10 +1,8 @@
 function ftt = int_block(obj, ind)
-% Integrate a block of TT cores
+% Integrate a block of FTT cores. tt = int_block(tt, ind)
 %
 %   ind - indices of coordinates will be integrated
-%
-%   ftt - output TT after integration
-%
+%   tt  - output FTT after integration
 
 ftt = obj;
 d = length(ftt.cores);

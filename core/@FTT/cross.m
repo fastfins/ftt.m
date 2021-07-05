@@ -1,5 +1,6 @@
 function obj = cross(obj, func, d, sample_x, debug_x)
-% cross iterations
+% Cross iterations for building the TT, only call this function if you know
+% what you are doing 
 
 % initilise TT cores
 if isempty(obj.cores)
@@ -219,12 +220,13 @@ while true % run ALS
     fprintf('\n');
     %
     if als_iter == obj.opt.max_als || max(errs(ind)) < obj.opt.als_tol
-        disp('ALS completed')
+        disp('ALS completed, TT ranks')
+        disp(rs)
         break;
     else
         % flip direction
         obj.direction = -obj.direction;
     end
 end
-disp(rs)
+obj.n_evals = f_evals;
 end

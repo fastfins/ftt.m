@@ -1,6 +1,10 @@
 function obj = round(obj, thres)
-% round the TT cores
-%
+% Round the TT cores. tt = round(tt, tol)
+% 
+%   tol - the truncation threshold of each SVD relative to the largest 
+%         singular value)
+
+
 if nargin == 1
     thres = obj.opt.local_tol;
 end
@@ -42,6 +46,6 @@ if strcmp (obj.opt.tt_method, 'amen')
     obj.res_w = [];
 end
 
-disp('rounded TT')
+disp('rounded TT, ranks:')
 disp(rs)
 end

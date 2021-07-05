@@ -1,13 +1,11 @@
 function fx = eval(obj, x, varargin)
-% Evaluate the ftt function. The output is horizontally aligned.
+% Evaluate the ftt function. f = eval(tt, x, pt)
 %
-%   x  - input variables, d x n.
-%
-%   pt - (optional) permuation index, where fTT is built for f(y),
-%        y is the permutation of x s.t. x = y(p) and y = x(pt)
-%        for a given p, pt can be obtained by pt(p) = 1:length(p);
-%
-%   fx - function values at x, mxn
+%   x   - input variables, d x n.
+%   pt  - (optional) permuation index, where FTT is built for f(y),
+%         y is the permutation of x s.t. x = y(p) and y = x(pt)
+%         for a given p, pt can be obtained by pt(p) = 1:length(p)
+%   f   - function values at x, m x n
 %
 
 % permute the input
