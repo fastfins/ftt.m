@@ -49,7 +49,7 @@ if ~isempty(ind1)
         
         rkm = size(ftt.cores{k}, 1);
         rk  = size(ftt.cores{k}, 3);
-        tmp = oned_integral(ftt.oneds{k}, reshape(permute(ftt.cores{k}, [2,1,3]), nx,rkm*rk));
+        tmp = integral(ftt.oneds{k}, reshape(permute(ftt.cores{k}, [2,1,3]), nx,rkm*rk));
         tmp = reshape(tmp, rkm, rk);
         ftt.cores{k+1} = reshape(tmp*reshape(ftt.cores{k+1}, rk, []), rkm, nx, []);
     end
@@ -61,7 +61,7 @@ if ~isempty(ind2)
         nx  = ftt.oneds{k}.num_nodes;
         rkm = size(ftt.cores{k}, 1);
         rk  = size(ftt.cores{k}, 3); % rk should always be 1
-        tmp = oned_integral(ftt.oneds{k}, reshape(permute(ftt.cores{k}, [2,1,3]), nx,rkm*rk));
+        tmp = integral(ftt.oneds{k}, reshape(permute(ftt.cores{k}, [2,1,3]), nx,rkm*rk));
         tmp = reshape(tmp, rkm, rk);
         ftt.cores{k-1} = reshape(reshape(ftt.cores{k-1}, [], rkm)*tmp, [], nx, rk);
     end

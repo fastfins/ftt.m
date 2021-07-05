@@ -19,8 +19,8 @@ sample_x = data.B\randn(d, 1E3);
 % setup the reference polynomial
 polys{1} = Legendre(40, [-5,5]);
 polys{2} = Fourier(20, [-5,5]);
-polys{3} = Lagrangep(5, 8, 'ghost_size', 1E-5, 'domain', [-5,5]);
-polys{4} = Lagrange1(40, 'ghost_size', 1E-5, 'domain', [-5,5]);
+polys{3} = Lagrangep(5, 8, [-5,5], 'ghost_size', 1E-5);
+polys{4} = Lagrange1(40, [-5,5], 'ghost_size', 1E-5);
 
 opts{1} = FTToption('tt_method', 'amen', 'sqrt_flag', true, ...
     'als_tol', 1E-4, 'local_tol', 1E-10, 'max_rank', 19, 'max_als', 5);

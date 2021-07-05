@@ -94,7 +94,7 @@ if obj.marginal_direction > 0
         T1  = reshape(eval_oned_core_213(obj.oneds{k}, obj.ys{k}, obj.oned_cdfs{k}.nodes(:)), rkm, []);
         pk  = reshape(sum(reshape(frl*T1, nr*nc, []).^2, 2), nr, nc)';
         %
-        r(j,:)  = sample_oned_cdf(obj.oned_cdfs{k}, pk, z(j,:));
+        r(j,:)  = invert_cdf(obj.oned_cdfs{k}, pk, z(j,:));
         %
         % evaluate the updated basis function
         T2  = eval_oned_core_213(obj.oneds{k}, obj.cores{k}, r(j,:));
@@ -145,7 +145,7 @@ else
         T1  = reshape(eval_oned_core_213(obj.oneds{k}, obj.ys{k}, obj.oned_cdfs{k}.nodes(:)), [], rk);
         pk  = reshape(sum(reshape(T1*frg, [], nc*nr).^2, 1), nc, nr);
         %
-        r(k,:)  = sample_oned_cdf(obj.oned_cdfs{k}, pk, z(k,:));
+        r(k,:)  = invert_cdf(obj.oned_cdfs{k}, pk, z(k,:));
         %
         % evaluate the updated basis function
         T2  = eval_oned_core_231(obj.oneds{k}, obj.cores{k}, r(k,:));
