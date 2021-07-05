@@ -1,4 +1,7 @@
 classdef Chebyshev1st < spectral
+    properties
+        n(1,:) % only for Chebyshev
+    end
     
     methods
         function obj = Chebyshev1st(order, varargin)

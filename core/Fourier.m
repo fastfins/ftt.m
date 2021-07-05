@@ -1,5 +1,13 @@
 classdef Fourier < spectral
     
+    properties 
+        m
+        n
+        is
+        ic
+        c
+    end
+    
     methods
         function obj = Fourier(order, varargin)
             [obj.order,obj.domain] = spectral.process_input(order,varargin{:});
@@ -12,54 +20,47 @@ classdef Fourier < spectral
             %
             obj.name = 'Fourier';
             %
+            obj.m   = obj.order+1;
+            obj.n   = obj.m*2;
+            obj.is  = 2:obj.m;
+            obj.ic  = (obj.m+1):(obj.n-1);
+            obj.c   = reshape((1:obj.order)*pi, 1, []);
+            %
             obj = post_construction(obj);
         end
         
         
         function [f,w] = eval_ref_basis(obj, x)
             %
-            m   = obj.order+1;
-            n   = m*2;
-            is  = 2:m;
-            ic  = (m+1):(n-1);
-            
-            f = zeros(length(x), n);
+            tmp = x(:).*obj.c;
+            f = zeros(length(x), obj.n);
             f(:,1)  = ones(size(x(:)))*sqrt(0.5);
-            f(:,is) = sin( x(:)*(1:obj.order)*pi );
-            f(:,ic) = cos( x(:)*(1:obj.order)*pi );
-            f(:,n)  = cos( x(:)*(m*pi) )*sqrt(0.5);
+            f(:,obj.is) = sin( tmp );
+            f(:,obj.ic) = cos( tmp );
+            f(:,obj.n)  = cos( x(:)*(obj.m*pi) )*sqrt(0.5);
             
             w = ones(size(x));
         end
         
         function [f, w] = eval_ref_basis_deri(obj, x)
             %
-            m   = obj.order+1;
-            n   = m*2;
-            is  = 2:m;
-            ic  = (m+1):(n-1);
-            
-            f = zeros(length(x), n);
-            c = reshape((1:obj.order)*pi, 1, []);
-            f(:,is) =  cos( x(:)*c ).*c;
-            f(:,ic) = -sin( x(:)*c ).*c;
-            f(:,n)  = -sin( x(:)*(m*pi) )*sqrt(0.5)*(m*pi);
+            tmp = x(:).*obj.c;
+            f = zeros(length(x), obj.n);
+            f(:,obj.is) =  cos( tmp ).*obj.c;
+            f(:,obj.ic) = -sin( tmp ).*obj.c;
+            f(:,obj.n)  = -sin( x(:)*(obj.m*pi) )*sqrt(0.5)*(obj.m*pi);
             
             w = ones(size(x));
         end
         
         function b = eval_ref_int_basis(obj, x)
             %
-            m   = obj.order+1;
-            n   = m*2;
-            is  = 2:m;
-            ic  = (m+1):(n-1);
-            %
-            b = zeros(length(x), n);
+            tmp = x(:).*obj.c;
+            b = zeros(length(x), obj.n);
             b(:,1)  = x(:)*sqrt(0.5);
-            b(:,is) = - cos( x(:)*(1:obj.order)*pi )./ (pi*(1:obj.order));
-            b(:,ic) = sin( x(:)*(1:obj.order)*pi )  ./ (pi*(1:obj.order));
-            b(:,n)  = sin( x(:)*(m*pi) )*sqrt(0.5)/(pi*m);
+            b(:,obj.is) = - cos( tmp )./ obj.c;
+            b(:,obj.ic) = sin( tmp )  ./ obj.c;
+            b(:,obj.n)  = sin( x(:)*(obj.m*pi) )*sqrt(0.5)/(pi*obj.m);
             %
         end
     end

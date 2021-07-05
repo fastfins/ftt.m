@@ -50,7 +50,7 @@ if obj.marginal_direction > 0 % from left to right
         %frl(isnan(frl)) = 0;
     end
     if dz < d
-        f   = sum((frl*obj.ms{dz}).^2, 2)'/obj.z;
+        f   = sum((frl*obj.ms{dz+1}).^2, 2)'/obj.z;
     else
         f   = frl'.^2/obj.z;
     end
@@ -74,7 +74,7 @@ else % from right to left
         frg = T2'*B;
     end
     if dz < d
-        f  = sum((obj.ms{ie}*frg).^2, 1)/obj.z;
+        f  = sum((obj.ms{ie-1}*frg).^2, 1)/obj.z;
     else
         f   = frg.^2/obj.z;
     end

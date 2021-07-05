@@ -58,31 +58,31 @@ classdef spectralCDF < onedCDF
         
         function z = eval_cdf(obj, pk, r)
             
-            data = pdf2cdf(obj, pk);
-            if data.size > 1 && data.size ~= length(r)
+            if size(pk,2) > 1 && size(pk,2) ~= length(r)
                 error('Error: dimenion mismatch')
             end
             r = reshape(r,[],1);
             %
-            if data.size == 1
-                z = eval_int(obj, data.coef, r) - data.base;
+            coef = obj.node2basis*pk;
+            base = obj.cdf_basis2node(1,:)*coef;
+            norm = (obj.cdf_basis2node(end,:)-obj.cdf_basis2node(1,:))*coef;
+            %
+            if size(pk,2) == 1
+                z = eval_int(obj, coef, r) - base;
             else
-                tmp = eval_int(obj, data.coef, r);
-                z = reshape(tmp, size(r)) - reshape(data.base, size(r));
+                tmp = eval_int(obj, coef, r);
+                z = reshape(tmp, size(r)) - reshape(base, size(r));
             end
-            z = reshape(z(:)./data.norm(:), size(r));
+            z = reshape(z(:)./norm(:), size(r));
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         function z = eval_cdf_deri(obj, pk, r)
             r = reshape(r,[],1);
-            data_size = size(pk,2);
-            
             coef = obj.node2basis*pk;
-            cdf_nodes = obj.cdf_basis2node*coef;
-            base = cdf_nodes(1,:);
-            if data_size == 1
+            base = obj.cdf_basis2node(1,:)*coef;
+            if size(pk,2) == 1
                 z = eval_int(obj, coef, r) - base;
                 z = reshape(z, size(r));
             else

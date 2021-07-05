@@ -1,5 +1,9 @@
 classdef Chebyshev2nd < spectral
     
+    properties
+        n(1,:) % only for Chebyshev
+    end
+    
     methods
         function obj = Chebyshev2nd(order, varargin)
             [obj.order,obj.domain] = spectral.process_input(order,varargin{:});

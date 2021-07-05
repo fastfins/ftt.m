@@ -5,7 +5,6 @@ classdef spectral < oned
         weights(:,1) 
         %
         % for evaluating the polynomial
-        n(1,:) % only for Chebyshev
         normalising(1,:) 
         omegas(:,1) 
         basis2node(:,:) 

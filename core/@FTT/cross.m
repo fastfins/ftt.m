@@ -73,7 +73,6 @@ end
 % start
 f_evals  = 0;
 als_iter = 0;
-errs = zeros(1,d);
 rs = ones(1,d);
 while true % run ALS
     if obj.direction > 0
@@ -96,6 +95,7 @@ while true % run ALS
                 sample_x(:,1:obj.opt.kick_rank) = [];
             end
             % start
+            errs = zeros(1,d);
             for k = ind
                 if obj.direction > 0
                     if k == 1
@@ -138,6 +138,7 @@ while true % run ALS
             end
         case {'amen'}
             % start
+            errs = zeros(1,d);
             for k = ind
                 if obj.direction > 0
                     if k == 1
@@ -210,14 +211,14 @@ while true % run ALS
     end
     % Print the information of each TT iteration
     fprintf('als=%2d, max_local_error=%3.3e, mean_local_error=%3.3e, max_rank=%d, cum#fevals=%3.3e\n', ...
-        als_iter, max(errs), mean(errs), max(rs), f_evals);
+        als_iter, max(errs(ind)), mean(errs(ind)), max(rs), f_evals);
     if ~isempty(debug_errs)
         fprintf('als=%2d, max_debug_error=%3.3e, mean_debug_error=%3.3e\n', ...
             als_iter, debug_errs(1), debug_errs(2));
     end
     fprintf('\n');
     %
-    if als_iter == obj.opt.max_als || max(errs) < obj.opt.als_tol
+    if als_iter == obj.opt.max_als || max(errs(ind)) < obj.opt.als_tol
         disp('ALS completed')
         break;
     else

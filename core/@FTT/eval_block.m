@@ -1,5 +1,5 @@
 function fx = eval_block(obj, x, dir)
-% Evaluate the fTT for either the first or last k variables.
+% Evaluate the FTT for either the first or last k variables.
 % The output is horizontally aligned.
 %
 %   x  - input variables, dxn.
