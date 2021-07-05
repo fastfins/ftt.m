@@ -47,7 +47,7 @@ for i = 1:4
         ind  = 1:8;
         irts{i,j} = marginalise(irts{i,j}, 1);
         tic;[r,f] = eval_irt(irts{i,j}, z(ind,:));toc
-        fx = eval_marginal_pdf(irts{i,j}, r);
+        fx = eval_pdf(irts{i,j}, r);
         tic;z0 = eval_rt(irts{i,j}, r);toc
         norm(z(ind,:) - z0)
         norm(f - fx)
@@ -62,7 +62,7 @@ for i = 1:4
         ind  = d:-1:15;
         irts{i,j} = marginalise(irts{i,j}, -1);
         tic;[r,f] = eval_irt(irts{i,j}, z(ind,:));toc
-        fx = eval_marginal_pdf(irts{i,j}, r);
+        fx = eval_pdf(irts{i,j}, r);
         tic;z0 = eval_rt(irts{i,j}, r);toc
         norm(z(ind,:) - z0)
         norm(f - fx)

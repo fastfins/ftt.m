@@ -62,7 +62,7 @@ classdef SIRT < FTT
     %
     %%%%%%%%%%%%%%%%%
     %
-    % see also ONED, FTTOPTION, and FTT
+    % see also ONED, ONEDCDF, FTTOPTION, and FTT
     
     properties
         marginal_direction
