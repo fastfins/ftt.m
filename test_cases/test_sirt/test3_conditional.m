@@ -10,33 +10,31 @@ data = setup_ou_process(d, a);
 func1 = @(x) eval_ou_process(data, x);
 func2 = @(x1, x2, dir) eval_cond_ou_process(data, x1, x2, dir);
 
-%%%%
-
 debug_size = 1E4;
 debug_x = data.B\randn(d, debug_size);
 sample_x = data.B\randn(d, 1E3);
 
 %%%%
 
-poly1 = setup_oned(21, 'type', 'Legendre', 'domain', [-5,5]);
-poly2 = setup_oned(10, 'type', 'Fourier',  'domain', [-5,5]);
-poly3 = setup_oned(5, 'type', 'Lagrange', 'lag_elems', 4, 'ghost_size', 1E-5, 'domain', [-5,5]);
+% setup the reference polynomial
+polys{1} = Legendre(40, [-5,5]);
+polys{2} = Fourier(20, [-5,5]);
+polys{3} = Lagrangep(5, 8, [-5,5], 'ghost_size', 1E-5);
+polys{4} = Lagrange1(40, [-5,5], 'ghost_size', 1E-5);
 
-opt1 = ftt_options('method', 'AMEN', 'ng_flag', true, 'oned_ref', poly1, ...
-    'err_tol', 1E-4, 'loc_err_tol', 1E-10, 'max_rank', 19, 'max_als', 20);
-ftt1 = build_ftt(func1, d, [], opt1, 'debug_x', debug_x);
+opts{1} = FTToption('tt_method', 'amen', 'sqrt_flag', true, ...
+    'als_tol', 1E-4, 'local_tol', 1E-10, 'max_rank', 19, 'max_als', 5);
+opts{2} = FTToption('tt_method', 'random', 'sqrt_flag', true, ...
+    'als_tol', 1E-4, 'local_tol', 1E-10, 'max_rank', 19, 'max_als', 5);
 
-% squared version using AMEN
-% AMEN has higher rank than random sampling with the same accuracy
-opt2 = ftt_options('method', 'Random', 'ng_flag', true, 'oned_ref', poly2, ...
-    'err_tol', 1E-4, 'loc_err_tol', 1E-10, 'max_rank', 19, 'max_als', 20);
-ftt2 = build_ftt(func1, d, [], opt2, 'debug_x', debug_x, 'sample_x', sample_x);
-   
-
-opt3 = ftt_options('method', 'Random', 'ng_flag', true, 'oned_ref', poly3, ...
-    'err_tol', 1E-4, 'loc_err_tol', 1E-10, 'max_rank', 19, 'max_als', 20);
-ftt3 = build_ftt(func1, d, [], opt3, 'debug_x', debug_x, 'sample_x', sample_x);
-
+for i = 1:4
+    for j = 1:2
+        tic;
+        irts{i,j} = SIRT(func, d, polys{i}, opts{j}, 'debug_x', debug_x, 'sample_x', sample_x);
+        irts{i,j} = marginalise(irts{i,j}, 1);
+        toc
+    end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

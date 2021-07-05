@@ -53,10 +53,10 @@ for i = 1:4
         norm(f - fx)
         fe   = eval_ou_process_marginal(data, ind, r);
         %
-        subplot(2,2,1);plot(abs(fe - f)/max(abs(fe)), '.');
-        subplot(2,2,2);plot(fe , f, '.');
+        subplot(2,3,1);plot(abs(fe - f)/max(abs(fe)), '.');
+        subplot(2,3,2);plot(fe , f, '.');
         title('actual function value vs fft')
-        disp(['actual covariance - sample covariance: ', num2str(norm( data.C(ind, ind) - cov(r')))])
+        subplot(2,3,3);plot(data.C(ind, ind) - cov(r'))
         
         % test 2
         ind  = d:-1:15;
@@ -68,10 +68,10 @@ for i = 1:4
         norm(f - fx)
         %
         fe   = eval_ou_process_marginal(data, ind, r);
-        subplot(2,2,3);plot(abs(fe - f)/max(abs(fe)), '.');
-        subplot(2,2,4);plot(fe , f, '.');
+        subplot(2,3,4);plot(abs(fe - f)/max(abs(fe)), '.');
+        subplot(2,3,5);plot(fe , f, '.');
         title('actual function value vs fft')
-        disp(['actual covariance - sample covariance: ', num2str(norm(data.C(ind, ind) - cov(r')))])
+        subplot(2,3,6);plot(data.C(ind, ind) - cov(r'))
     end
 end
 
