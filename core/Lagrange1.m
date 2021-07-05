@@ -47,11 +47,8 @@ classdef Lagrange1 < piecewise
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
+        %{
         function f = eval(obj, f_at_nodes, x)
-            
-            bas = eval_basis(obj, x(:));
-            f = bas*f_at_nodes;
-            %{
             tau = eps; % safe guard thershold
             n   = length(x);
             m   = size(f_at_nodes,2);
@@ -102,8 +99,8 @@ classdef Lagrange1 < piecewise
                 %
                 f(mask_inside,:) = f_at_nodes(ind,:).*(1-local_x) + f_at_nodes(ind+1,:).*local_x;
             end
-            %}
         end
+        %}
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
@@ -130,7 +127,7 @@ classdef Lagrange1 < piecewise
                 case{'Dirichlet'}
                     txl = max(obj.domain(1), x(mask_left));
                     txr = min(obj.domain(2), x(mask_right));
-                    val = [reshape( ((txl-obj.domain(1))/(left_node-obj.domain(1))), [], 1)...
+                    val = [reshape( ((txl-obj.domain(1))/(left_node-obj.domain(1))), [], 1);...
                         reshape(((txr-obj.domain(2))/(right_node-obj.domain(2))), [], 1)];
                 otherwise
                     val = [ones(sum(mask_left),1); ones(sum(mask_right),1)];

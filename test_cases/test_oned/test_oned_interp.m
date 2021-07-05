@@ -48,7 +48,7 @@ plot(xs, lf, 'linewidth', 2)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+figure
 def = Lagrangep(5, 5, [-1.5, 1.5], 'bc', 'Neumann', 'ghost_size', 0.1);
 plot(eval_basis(def, def.nodes))
 
@@ -75,7 +75,7 @@ def = Lagrangep(10, 5, [-1.5, 1.5], 'bc', 'Dirichlet', 'ghost_size', 0.1);
 xs = linspace(def.domain(1), def.domain(2), 1000);
 % test interpolation property
 f = @(y) sin(y*5*pi)+1;
-fi = eval(def, f(def.nodes(:)), xs);
+fi = eval(def, f(def.nodes), xs);
 plot(xs, f(xs), xs, fi, def.nodes,f(def.nodes(:)), 'o')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,7 +85,7 @@ plot(xs, f(xs), xs, fi, def.nodes,f(def.nodes(:)), 'o')
 def = Lagrangep(10, 5, [-5, -2], 'bc', 'Neumann', 'ghost_size', 0.1);
 xs = linspace(def.domain(1), def.domain(2), 1000);
 f = @(y) 1./log(-y) + sin(y*5*pi);
-fi = eval(def, f(def.nodes(:)), xs);
+fi = eval(def, f(def.nodes), xs);
 plot(xs, f(xs), xs, fi, def.nodes,f(def.nodes(:)), 'o')
 
 %%%%

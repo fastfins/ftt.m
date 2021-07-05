@@ -71,11 +71,11 @@ classdef Lagrangep < piecewise
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
+        %{
         function f = eval(obj, f_at_nodes, x)
             bas = eval_basis(obj, x(:));
             f = bas*f_at_nodes;
             
-            %{
             tau = eps; % safe guard thershold
             n   = length(x);
             f   = zeros(n,1);
@@ -129,8 +129,8 @@ classdef Lagrangep < piecewise
                 % evaluation of the internal interpolation
                 f(mask_inside)  = sum(local_f(ind,:).*tmp_m, 2)./sum(tmp_m, 2);
             end
-            %}
         end
+        %}
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         

@@ -90,6 +90,13 @@ classdef piecewise < oned
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
+        function f = eval(obj, f_at_nodes, x)            
+            bas = eval_basis(obj, x(:));
+            f = bas*f_at_nodes;
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
         function f = eval_deri(obj, coeff, x)
             % coeff: function at nodes, n_nodes x ??
             % x : row vector, 1 x n

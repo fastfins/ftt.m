@@ -33,7 +33,6 @@ test_interp_conv(lags(1,[5, 7, 8, 10]), @(y) log(y));
 
 xs  = linspace(0,1,1000)';
 figure
-hold on
 lag = lags{1,end};
 I   = eye(lag.num_nodes);
 lf  = zeros(size(xs));
@@ -41,6 +40,7 @@ for j = 1:lag.num_nodes
     fi  = eval(lag, I(:,j), xs);
     lf  = lf + abs(fi);
     plot(xs, fi)
+    hold on
     plot(lag.nodes, I(:,j), 'o')
 end
 plot(xs, lf, 'linewidth', 2)
@@ -48,7 +48,7 @@ plot(xs, lf, 'linewidth', 2)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+figure
 def = Lagrange1(15, [-1.5, 1.5], 'bc', 'Neumann', 'ghost_size', 0.1);
 plot(eval_basis(def, def.nodes))
 
@@ -58,7 +58,7 @@ bs = eval_basis(def, xs);
 for i = 1:size(bs,2), plot(xs, bs(:,i)); set(gca,'ylim', [-1,1]); title(num2str(i)); pause(0.2); end
 
 %%%
-
+figure
 def = Lagrange1(21, [-1.5, 1.5], 'bc', 'Neumann', 'ghost_size', 0.1);
 plot(eval_basis(def, def.nodes))
 
@@ -75,7 +75,7 @@ def = Lagrange1(50, [-1.5, 1.5], 'bc', 'Dirichlet', 'ghost_size', 0.1);
 xs = linspace(def.domain(1), def.domain(2), 1000);
 % test interpolation property
 f = @(y) sin(y*5*pi)+1;
-fi = eval(def, f(def.nodes(:)), xs);
+fi = eval(def, f(def.nodes), xs);
 plot(xs, f(xs), xs, fi, def.nodes,f(def.nodes(:)), 'o')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
