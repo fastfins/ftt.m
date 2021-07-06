@@ -13,7 +13,7 @@ classdef FTToption
     %                 The SVD is truncated at singular values that is about
     %                 1E-10 relative to the largest singular value.
     %   cdf_tol     - Tolerance for evaluating the inverse CDF function.
-    %                 Used by SIRT. Default is 1E-8.
+    %                 Used by SIRT. Default is 1E-10.
     %   tt_method   - Construction method. Default is option is 'amen'. 
     %                 Options are 'amen' and 'random'.
     %   int_method  - Interpolation method for choosing cross indices. 
@@ -46,7 +46,7 @@ classdef FTToption
         defaultKickRank = 2;
         defaultMaxRank  = 20;
         defaultLocTol   = 1E-10;
-        defaultCDFTol   = 1E-8;
+        defaultCDFTol   = 1E-10;
         defaultTTMethod = 'amen';
         expectedTTMethod  = {'random','amen'};
         defaultIntM     = 'MaxVol';

@@ -113,7 +113,40 @@ classdef Lagrange1CDF < Lagrange1 & piecewiseCDF
             a = obj.grid(ei);
             b = obj.grid(ei+1);
             %
-            r = regula_falsi(@(x) eval_int_lag_local(obj, data, ei, mask, x) - rhs(:), obj.tol, a(:), b(:));
+            r = regula_falsi(obj, data, ei, mask, rhs(:), a(:), b(:));
+        end
+
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        function c = regula_falsi(obj, data, ei, mask, rhs, a, b)    
+            fa = eval_int_lag_local(obj, data, ei, mask, a) - rhs;
+            fb = eval_int_lag_local(obj, data, ei, mask, b) - rhs;
+            if sum(sign(fb.*fa) ~= -1)
+                disp('Root finding: initial guesses on one side')
+            end
+            c = b - fb.*(b - a)./(fb - fa);  % Regula Falsi
+            cold = inf;
+            %i = 2;
+            while ( norm(c-cold, Inf) >= obj.tol )
+                cold = c;
+                fc  = eval_int_lag_local(obj, data, ei, mask, c) - rhs;
+                if norm(fc, Inf) < obj.tol
+                    break;
+                end
+                I1  = (fc < 0);
+                I2  = (fc > 0);
+                I3  = ~I1 & ~I2;
+                a   = I1.*c + I2.*a + I3.*c;
+                b   = I1.*b + I2.*c + I3.*c;
+                fa  = I1.*fc + I2.*fa + I3.*fc;
+                fb  = I1.*fb + I2.*fc + I3.*fc;
+                step    = -fb.*(b - a)./(fb - fa);
+                step(isnan(step)) = 0;
+                c = b + step;
+                %norm(fc, inf)
+                %i = i+1;
+            end
+            %disp(i)
         end
 
     end

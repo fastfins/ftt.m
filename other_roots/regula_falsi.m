@@ -11,9 +11,13 @@ end
 c = b - fb.*(b - a)./(fb - fa);  % Regula Falsi
 cold    = inf;
 
-while ( norm(c-cold, inf) >= tol )
+i = 2;
+while ( norm(c-cold, Inf) >= tol )
     cold    = c;
-    fc  = func(c) ;
+    fc  = func(c);
+    if norm(fc, Inf) < tol
+        break;
+    end
     
     I1  = (fc < 0);
     I2  = (fc > 0);
@@ -27,6 +31,8 @@ while ( norm(c-cold, inf) >= tol )
     c = b + step;
     
     %norm(fc, inf)
+    i = i+1;
 end
+disp(i)
 
 end

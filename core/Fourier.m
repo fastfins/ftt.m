@@ -32,36 +32,45 @@ classdef Fourier < spectral
         
         function [f,w] = eval_ref_basis(obj, x)
             %
-            tmp = x(:).*obj.c;
+            tmp = x(:).*obj.c;     
+            f = [ones(size(x(:)))*sqrt(0.5), sin(tmp), cos(tmp), ...
+                cos( x(:)*(obj.m*pi) )*sqrt(0.5)];
+            %{
             f = zeros(length(x), obj.n);
             f(:,1)  = ones(size(x(:)))*sqrt(0.5);
             f(:,obj.is) = sin( tmp );
             f(:,obj.ic) = cos( tmp );
             f(:,obj.n)  = cos( x(:)*(obj.m*pi) )*sqrt(0.5);
-            
+            %}
             w = ones(size(x));
         end
         
         function [f, w] = eval_ref_basis_deri(obj, x)
             %
             tmp = x(:).*obj.c;
+            f = [zeros(length(x),1), cos(tmp).*obj.c, -sin(tmp).*obj.c, ...
+                -sin(x(:)*(obj.m*pi))*sqrt(0.5)*(obj.m*pi)];
+            %{
             f = zeros(length(x), obj.n);
             f(:,obj.is) =  cos( tmp ).*obj.c;
             f(:,obj.ic) = -sin( tmp ).*obj.c;
             f(:,obj.n)  = -sin( x(:)*(obj.m*pi) )*sqrt(0.5)*(obj.m*pi);
-            
+            %}
             w = ones(size(x));
         end
         
         function b = eval_ref_int_basis(obj, x)
             %
             tmp = x(:).*obj.c;
+            b = [x(:)*sqrt(0.5), -cos(tmp)./obj.c, sin(tmp)./obj.c, ...
+                sin(x(:)*(obj.m*pi))*sqrt(0.5)/(pi*obj.m)];
+            %{
             b = zeros(length(x), obj.n);
             b(:,1)  = x(:)*sqrt(0.5);
             b(:,obj.is) = - cos( tmp )./ obj.c;
             b(:,obj.ic) = sin( tmp )  ./ obj.c;
             b(:,obj.n)  = sin( x(:)*(obj.m*pi) )*sqrt(0.5)/(pi*obj.m);
-            %
+            %}
         end
     end
 end

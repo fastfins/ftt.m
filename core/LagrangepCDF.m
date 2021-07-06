@@ -189,7 +189,7 @@ classdef LagrangepCDF < Lagrangep & piecewiseCDF
             a = obj.nodes(ind);
             b = obj.nodes(ind+1);
             %
-            r = regula_falsi(@(x) eval_int_lag_local(obj, data, ei, mask, x) - rhs(:), obj.tol, a(:), b(:));
+            r = regula_falsi(obj, data, ei, mask, rhs(:), a(:), b(:));
         end
         
     end

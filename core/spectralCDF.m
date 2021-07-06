@@ -114,12 +114,17 @@ classdef spectralCDF < onedCDF
             a = obj.sampling_nodes(ind(mask2));
             b = obj.sampling_nodes(ind(mask2)+1);
             %
-            if data_size == 1
-                r(mask2) = regula_falsi(@(x) eval_int(obj,coef,x)-(cdf_base+rhs(mask2)),...
-                    obj.tol, a(:), b(:));
+            if data_size == 1                
+                r(mask2) = regula_falsi(obj, coef, cdf_base+rhs(mask2), a(:), b(:));
+                %r(mask2) = regula_falsi(@(x) eval_int(obj,coef,x)-(cdf_base+rhs(mask2)),...
+                %    obj.tol, a(:), b(:)); % old regular falsi
             else
-                r(mask2) = regula_falsi(@(x) eval_int(obj,coef(:,mask2),x)-(reshape(cdf_base(mask2),[],1)+rhs(mask2)),...
-                    obj.tol, a(:), b(:));
+                r(mask2) = regula_falsi(obj, coef(:,mask2), ...
+                    reshape(cdf_base(mask2),[],1)+rhs(mask2), a(:), b(:));
+                %r(mask2) = regula_falsi(@(x) eval_int(obj,coef(:,mask2),x)-(reshape(cdf_base(mask2),[],1)+rhs(mask2)),...
+                %    obj.tol, a(:), b(:)); % old regular falsi
+                %r(mask2) = newton(@(x) eval_int2(obj,coef(:,mask2),x,reshape(cdf_base(mask2),[],1)+rhs(mask2)),...
+                %    obj.tol, b(:)); % newton, needs many iterations
             end
             %
             r = reshape(r, size(xi));
@@ -127,6 +132,62 @@ classdef spectralCDF < onedCDF
             r(isinf(r)) = 0.5*(obj.domain(1) + obj.domain(2));
         end
         
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        function c = regula_falsi(obj, coef, rhs, a, b)    
+            fa = eval_int(obj,coef,a)-rhs;
+            fb = eval_int(obj,coef,b)-rhs;
+            if sum(sign(fb.*fa) ~= -1)
+                disp('Root finding: initial guesses on one side')
+            end
+            c = b - fb.*(b - a)./(fb - fa);  % Regula Falsi
+            cold = inf;
+            %i = 2;
+            while ( norm(c-cold, Inf) >= obj.tol )
+                cold = c;
+                fc  = eval_int(obj,coef,c)-rhs;
+                if norm(fc, Inf) < obj.tol
+                    break;
+                end
+                I1  = (fc < 0);
+                I2  = (fc > 0);
+                I3  = ~I1 & ~I2;
+                a   = I1.*c + I2.*a + I3.*c;
+                b   = I1.*b + I2.*c + I3.*c;
+                fa  = I1.*fc + I2.*fa + I3.*fc;
+                fb  = I1.*fb + I2.*fc + I3.*fc;
+                step    = -fb.*(b - a)./(fb - fa);
+                step(isnan(step)) = 0;
+                c = b + step;
+                %norm(fc, inf)
+                %i = i+1;
+            end
+            %disp(i)
+        end
+
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        %{
+        function [f,df] = eval_int2(obj, coef, x, c)
+            [x,J] = domain2reference(obj,x(:));
+            b  = eval_ref_basis(obj, x);
+            bi = eval_ref_int_basis(obj, x);
+            b  = b.*J;
+            bi = bi.*J;
+            %
+            if size(coef,2) > 1
+                if size(coef,2) == length(x)
+                    f  = reshape(sum(bi.*coef',2) - c, [], 1);
+                    df = reshape(sum(b .*coef',2), [], 1);
+                else
+                    error('Error: dimenion mismatch')
+                end
+            else
+                f  = reshape((bi*coef), [], 1) - c;
+                df = reshape((b *coef), [], 1);
+            end
+        end
+        %}
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %{
         function F = invert_obj(obj, data, mask, x)
