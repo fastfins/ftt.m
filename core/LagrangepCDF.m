@@ -180,6 +180,37 @@ classdef LagrangepCDF < Lagrangep & piecewiseCDF
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
+        function [f,df] = eval_int_lag_local_newton(obj, data, ei, mask, rhs, x)
+            domains = [reshape(obj.grid(ei),[],1), reshape(obj.grid(ei+1),[],1)];
+            x2z = 0.5*(domains(:,2)-domains(:,1));
+            mid = 0.5*(domains(:,2)+domains(:,1));
+            x   = (x(:)-mid)./x2z;
+            if data.size == 1
+                %b  = eval_ref_int_basis(obj.cheby, x); % rewrite
+                [b,db] = eval_ref_int_basis_newton(obj.cheby, x);
+                b   = b.*x2z;
+                tmp = reshape(sum(b.*data.coef(:,ei)',2), size(x));
+                f   = tmp - reshape(data.base(ei),size(tmp)) + reshape(data.cdf_grid(ei),size(tmp));
+                df  = reshape(sum(db.*data.coef(:,ei)',2), size(x));
+            else
+                pi  = find(mask);
+                j1  = pi + (ei-1)*data.size;
+                %
+                %b  = eval_ref_int_basis(obj.cheby, x); % rewrite
+                [b,db] = eval_ref_int_basis_newton(obj.cheby, x);
+                b   = b.*x2z;
+                tmp = reshape(sum(b.*data.coef(:,j1)',2), size(x));
+                %
+                j2  = (pi-1)* obj.num_elems    + ei;
+                j3  = (pi-1)*(obj.num_elems+1) + ei;
+                f   = tmp - reshape(data.base(j2),size(tmp)) + reshape(data.cdf_grid(j3),size(tmp));
+                df  = reshape(sum(db.*data.coef(:,j1)',2), size(x));
+            end
+            f = f - rhs;
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
         function r = invert_cdf_local(obj, data, ei, mask, rhs)
             if data.size == 1
                 ind = sum(reshape(data.cdf_nodes,1,[]) <= reshape(rhs,[],1), 2)';
@@ -190,6 +221,7 @@ classdef LagrangepCDF < Lagrangep & piecewiseCDF
             b = obj.nodes(ind+1);
             %
             r = regula_falsi(obj, data, ei, mask, rhs(:), a(:), b(:));
+            %r = newton(obj, data, ei, mask, rhs(:), a(:), b(:));
         end
         
     end

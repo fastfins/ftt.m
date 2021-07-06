@@ -175,7 +175,7 @@ classdef piecewiseCDF < onedCDF
             c = b - fb.*(b - a)./(fb - fa);  % Regula Falsi
             cold = inf;
             %i = 2;
-            while ( norm(c-cold, Inf) >= obj.tol )
+            while ( norm(c-cold, Inf) > obj.tol )
                 cold = c;
                 fc  = eval_int_lag_local(obj, data, ei, mask, c) - rhs;
                 if norm(fc, Inf) < obj.tol
@@ -196,5 +196,62 @@ classdef piecewiseCDF < onedCDF
             end
             %disp(i)
         end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        function c = newton(obj, data, ei, mask, rhs, a, b)
+            %[f,df] = eval_int_lag_local_newton(obj, data, ei, mask, rhs, cold);
+            %c = cold - f./df;
+            %i = 0;
+            c = 0.5*(a+b);
+            rf_flag = true;
+            for iter = 1:10
+                cold = c;
+                [f,df] = eval_int_lag_local_newton(obj, data, ei, mask, rhs, cold);
+                step = f./df;
+                step(isnan(step)) = 0;
+                c = cold - step;
+                if ( norm(f, Inf) < obj.tol ) || ( norm(step, Inf) < obj.tol )
+                    rf_flag = false;
+                    break;
+                end
+                %i = i+2;
+            end
+            %disp(i)
+            %norm(f, inf)
+            if rf_flag || sum(c>b|c<a) ~=0
+                disp('newton failed')
+                fc = eval_int_lag_local(obj, data, ei, mask, c) - rhs;
+                I1 = (fc < 0);
+                I2 = (fc > 0);
+                I3 = ~I1 & ~I2;
+                a  = I1.*c + I2.*a + I3.*a;
+                b  = I1.*b + I2.*c + I3.*b;
+                c = regula_falsi(obj, data, ei, mask, rhs, a, b);
+            end
+        end
+        
+        %{
+        function c = newton(obj, data, ei, mask, rhs, a, b)    
+            cold = 0.5*(a+b);
+            [f,df] = eval_int_lag_local_newton(obj, data, ei, mask, rhs, cold);
+            c = cold - f./df;
+            %i = 2;
+            while ( norm(c-cold, Inf) >= obj.tol )
+                %if ( norm(c-cold, Inf) < obj.tol )
+                %    break
+                %end
+                cold = c;
+                [f,df] = eval_int_lag_local_newton(obj, data, ei, mask, rhs, cold);
+                c = cold - f./df;
+                if norm(f, Inf) < obj.tol
+                    break;
+                end
+                %i = i+2;
+            end
+            %disp(i)
+            %norm(f, inf)
+        end
+        %}
     end
 end

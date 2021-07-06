@@ -72,5 +72,18 @@ classdef Fourier < spectral
             b(:,obj.n)  = sin( x(:)*(obj.m*pi) )*sqrt(0.5)/(pi*obj.m);
             %}
         end
+        
+        function [b,db] = eval_ref_int_basis_newton(obj, x)
+            %
+            tmp = x(:).*obj.c;
+            ct  = cos(tmp);
+            st  = sin(tmp);
+            %
+            b = [x(:)*sqrt(0.5), -ct./obj.c, st./obj.c, ...
+                sin(x(:)*(obj.m*pi))*sqrt(0.5)/(pi*obj.m)];
+            %
+            db = [ones(size(x(:)))*sqrt(0.5), st, ct, ...
+                cos(x(:)*(obj.m*pi))*sqrt(0.5)];
+        end
     end
 end

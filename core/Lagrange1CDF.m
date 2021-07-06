@@ -89,7 +89,7 @@ classdef Lagrange1CDF < Lagrange1 & piecewiseCDF
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        function z = eval_int_lag_local(obj, data, ei, mask, r)
+        function f = eval_int_lag_local(obj, data, ei, mask, r)
             r = r - reshape(obj.grid(ei),size(r));
             if data.size > 1
                 coi = find(mask);
@@ -102,10 +102,34 @@ classdef Lagrange1CDF < Lagrange1 & piecewiseCDF
                 % z = A(:).*r(:) + B(:).*r(:).^2/2 + C(:).*r(:).^3/3;
                 % z = z + cdf(:);
                 %
-                z = sum([r(:), r(:).^2/2, r(:).^3/3].*data.coef(:,ind)', 2) + reshape(data.cdf_grid(jnd),[],1);
+                f = sum([r(:), r(:).^2/2, r(:).^3/3].*data.coef(:,ind)', 2) + reshape(data.cdf_grid(jnd),[],1);
             else
-                z = sum([r(:), r(:).^2/2, r(:).^3/3].*data.coef(:,ei)', 2) + reshape(data.cdf_grid(ei),[],1);
+                f = sum([r(:), r(:).^2/2, r(:).^3/3].*data.coef(:,ei)', 2) + reshape(data.cdf_grid(ei),[],1);
             end
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        function [f,df] = eval_int_lag_local_newton(obj, data, ei, mask, rhs, r)
+            r = r - reshape(obj.grid(ei),size(r));
+            if data.size > 1
+                coi = find(mask);
+                ind = ei + (coi-1)*obj.num_elems;
+                jnd = ei + (coi-1)*(obj.num_elems+1);
+                %
+                % A: data.A(ind), B: data.B(ind), C: data.C(ind),
+                % cdf: data.cdf_grid(jnd), base: data.base(ind)
+                %
+                % z = A(:).*r(:) + B(:).*r(:).^2/2 + C(:).*r(:).^3/3;
+                % z = z + cdf(:);
+                %
+                f  = sum([r(:), r(:).^2/2, r(:).^3/3].*data.coef(:,ind)', 2) + reshape(data.cdf_grid(jnd),[],1);
+                df = sum([ones(length(r),1), r(:), r(:).^2].*data.coef(:,ind)', 2);
+            else
+                f  = sum([r(:), r(:).^2/2, r(:).^3/3].*data.coef(:,ei)', 2) + reshape(data.cdf_grid(ei),[],1);
+                df = sum([ones(length(r),1), r(:), r(:).^2].*data.coef(:,ei)', 2);
+            end
+            f = f - rhs;
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -115,40 +139,11 @@ classdef Lagrange1CDF < Lagrange1 & piecewiseCDF
             a = obj.grid(ei);
             b = obj.grid(ei+1);
             %
-            r = regula_falsi(obj, data, ei, mask, rhs(:), a(:), b(:));
-        end
-
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        function c = regula_falsi(obj, data, ei, mask, rhs, a, b)    
-            fa = eval_int_lag_local(obj, data, ei, mask, a) - rhs;
-            fb = eval_int_lag_local(obj, data, ei, mask, b) - rhs;
-            if sum(sign(fb.*fa) ~= -1)
-                disp('Root finding: initial guesses on one side')
-            end
-            c = b - fb.*(b - a)./(fb - fa);  % Regula Falsi
-            cold = inf;
-            %i = 2;
-            while ( norm(c-cold, Inf) >= obj.tol )
-                cold = c;
-                fc  = eval_int_lag_local(obj, data, ei, mask, c) - rhs;
-                if norm(fc, Inf) < obj.tol
-                    break;
-                end
-                I1  = (fc < 0);
-                I2  = (fc > 0);
-                I3  = ~I1 & ~I2;
-                a   = I1.*c + I2.*a + I3.*c;
-                b   = I1.*b + I2.*c + I3.*c;
-                fa  = I1.*fc + I2.*fa + I3.*fc;
-                fb  = I1.*fb + I2.*fc + I3.*fc;
-                step    = -fb.*(b - a)./(fb - fa);
-                step(isnan(step)) = 0;
-                c = b + step;
-                %norm(fc, inf)
-                %i = i+1;
-            end
-            %disp(i)
+            r = newton(obj, data, ei, mask, rhs(:), a(:), b(:));
+            %if sum( r>b(:) | r<a(:) ) ~=0
+            %    warning('newton failed')
+            %    r = regula_falsi(obj, data, ei, mask, rhs(:), a(:), b(:));
+            %end
         end
 
     end

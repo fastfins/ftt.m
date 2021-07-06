@@ -15,7 +15,7 @@ classdef Chebyshev2nd < spectral
             obj.weights = double( sin( vpa(pi)*(1:n)/(n+1)).^2*vpa(pi)/(n+1) );
             %
             obj.n = reshape(0:obj.order,1,[]);
-            obj.normalising = sqrt(2/pi)*ones(1, order+1);  
+            obj.normalising = sqrt(2/pi);  
             %
             obj = post_construction(obj);
         end
@@ -105,6 +105,40 @@ classdef Chebyshev2nd < spectral
             % the normalising constant used
             % int(U_n) = T_(n+1) / (n+1), n = 0, ..., order
             b = cos( theta.*(obj.n+1) ) .* (obj.normalising./(obj.n+1));
+        end
+        
+        function [b,db] = eval_ref_int_basis_newton(obj, x)
+            %
+            % Evaluate Chebyshev polynomials of the 2nd kind,
+            % for all input x, up to order n
+            %
+            % Inputs:
+            % x:    n_pts
+            %
+            % Output:
+            % f:    function outputs for each order at each x, n_pts x (n+1)
+            % w:    weight function at each x, n_pts x 1
+            %
+            % x = cos(theta), or theta = acos(x), x in [-1, 1]
+            %
+            % U_n(theta) = cos( (n+1) * theta )  / cos(theta)
+            % w(x) = sqrt(1 - x^2)
+            %
+            theta = real(acos(x(:)));
+            b  = cos(theta.*(obj.n+1)) .* (obj.normalising./(obj.n+1));
+            db = sin(theta.*(obj.n+1)) ./ (sin(theta)./obj.normalising);
+            
+            % deal with end points
+            
+            mask = abs(x+1) < eps;
+            if sum(mask) > 0
+                db(mask,:) = ((obj.n+1).*(-1).^obj.n).*obj.normalising;
+            end
+            
+            mask = abs(x-1) < eps;
+            if sum(mask) > 0
+                db(mask,:) = (obj.n+1).*obj.normalising;
+            end
         end
     end
     
