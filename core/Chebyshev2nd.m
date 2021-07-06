@@ -43,12 +43,12 @@ classdef Chebyshev2nd < spectral
             
             mask = abs(x+1) < eps;
             if sum(mask) > 0
-                f(mask,:) = ((obj.n+1).*(-1).^obj.n).*obj.normalising;
+                f(mask,:) = repmat(((obj.n+1).*(-1).^obj.n).*obj.normalising, sum(mask), 1);
             end
             
             mask = abs(x-1) < eps;
             if sum(mask) > 0
-                f(mask,:) = (obj.n+1).*obj.normalising;
+                f(mask,:) = repmat((obj.n+1).*obj.normalising, sum(mask), 1);
             end
             
             if nargout > 1
@@ -132,12 +132,12 @@ classdef Chebyshev2nd < spectral
             
             mask = abs(x+1) < eps;
             if sum(mask) > 0
-                db(mask,:) = ((obj.n+1).*(-1).^obj.n).*obj.normalising;
+                db(mask,:) = repmat(((obj.n+1).*(-1).^obj.n).*obj.normalising, sum(mask), 1);
             end
             
             mask = abs(x-1) < eps;
             if sum(mask) > 0
-                db(mask,:) = (obj.n+1).*obj.normalising;
+                db(mask,:) = repmat((obj.n+1).*obj.normalising, sum(mask), 1);
             end
         end
     end

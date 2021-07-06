@@ -210,7 +210,11 @@ classdef piecewiseCDF < onedCDF
                 [f,df] = eval_int_lag_local_newton(obj, data, ei, mask, rhs, cold);
                 step = f./df;
                 step(isnan(step)) = 0;
-                c = cold - step;
+                c  = cold - step;
+                I1 = c<a;
+                I2 = c>b;
+                I3 = ~I1 & ~I2;
+                c  = a.*I1 + b.*I2 + c.*I3;
                 if ( norm(f, Inf) < obj.tol ) || ( norm(step, Inf) < obj.tol )
                     rf_flag = false;
                     break;
@@ -219,8 +223,8 @@ classdef piecewiseCDF < onedCDF
             end
             %disp(i)
             %norm(f, inf)
-            if rf_flag || sum(c>b|c<a) ~=0
-                disp('newton failed')
+            if rf_flag
+                disp('newton does not converge')
                 fc = eval_int_lag_local(obj, data, ei, mask, c) - rhs;
                 I1 = (fc < 0);
                 I2 = (fc > 0);

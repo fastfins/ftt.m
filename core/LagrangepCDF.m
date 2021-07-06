@@ -109,7 +109,6 @@ classdef LagrangepCDF < Lagrangep & piecewiseCDF
                     obj.cheby.num_nodes, data.size, obj.num_elems);
                 
                 [cdf_left, cdf_right] = pdf2cdf_bnd(obj, data.pdf_left, data.pdf_right);
-                
                 data.cdf_grid   = zeros(obj.num_elems+1, data.size);
                 data.cdf_nodes  = zeros(obj.num_nodes, data.size);
                 data.base       = zeros(obj.num_elems, data.size);
@@ -220,8 +219,8 @@ classdef LagrangepCDF < Lagrangep & piecewiseCDF
             a = obj.nodes(ind);
             b = obj.nodes(ind+1);
             %
-            r = regula_falsi(obj, data, ei, mask, rhs(:), a(:), b(:));
-            %r = newton(obj, data, ei, mask, rhs(:), a(:), b(:));
+            %r = regula_falsi(obj, data, ei, mask, rhs(:), a(:), b(:));
+            r = newton(obj, data, ei, mask, rhs(:), a(:), b(:));
         end
         
     end
