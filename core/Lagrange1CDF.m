@@ -128,7 +128,7 @@ classdef Lagrange1CDF < Lagrange1 & piecewiseCDF
             end
             c = b - fb.*(b - a)./(fb - fa);  % Regula Falsi
             cold = inf;
-            i = 2;
+            %i = 2;
             while ( norm(c-cold, Inf) >= obj.tol )
                 cold = c;
                 fc  = eval_int_lag_local(obj, data, ei, mask, c) - rhs;
@@ -146,9 +146,9 @@ classdef Lagrange1CDF < Lagrange1 & piecewiseCDF
                 step(isnan(step)) = 0;
                 c = b + step;
                 %norm(fc, inf)
-                i = i+1;
+                %i = i+1;
             end
-            disp(i)
+            %disp(i)
         end
 
     end
