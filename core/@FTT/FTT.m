@@ -70,12 +70,10 @@ classdef FTT
     %   poly = Lagrangep(5, 4, [0,1], 'ghost_size', 1E-10);
     %
     % % Alternative option use random enrichment
-    %   opt = FTToption('tt_method', 'random', 'max_als', 5, ...
-    %           'als_tol', 1E-8, 'local_tol', 1E-10, 'kick_rank', 2, ...
-    %           'init_rank', 6, 'max_rank', 12);
+    %   opt_new = update(opt, 'tt_method', 'random');
     %
     % % Build FTT
-    %   tt =  FTT(func, d, poly, opt, 'debug_x', debug_x);    
+    %   tt =  FTT(func, d, poly, opt_new, 'debug_x', debug_x);    
     %
     % % Evaluate the function and its factorisation
     %   exact   = func(debug_x);
@@ -180,8 +178,8 @@ classdef FTT
             parse(p,func,d,arg,varargin{:});
             %
             obj.opt = p.Results.option;
-            sample_x    = p.Results.sample_x;
-            debug_x     = p.Results.debug_x;
+            debug_x = p.Results.debug_x;
+            sample_x = p.Results.sample_x;
             %
             if isa(arg, 'FTT')
                 obj = arg;

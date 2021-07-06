@@ -20,7 +20,7 @@ classdef FTToption
     % FTToption Methods:
     %    FTToption  - Constructor. If no parameter is passed in, it returns 
     %                 the default obj.
-    %    update     - Update options of an object.
+    %    update     - Update property 
     %
     
     properties
