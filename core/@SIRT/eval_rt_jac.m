@@ -1,12 +1,11 @@
 function J = eval_rt_jac(obj, r, z)
-% Evaluate the jacobian of the squared RT z = T(r), where z is uniform and 
-% r is target r.v.
+% Evaluate the jacobian of the squared Rosenblatt transport Z = R(X), where 
+% Z is the uniform random variable and X is the target random variable. 
+%   J = EVAL_RT_JAC(irt, X, Z)
 %
-%   r   - random variable drawn form the pdf defined by SIRT
-%
-%   z   - uniform random variables, d x n
-%
-%   J   - 
+%   X - random variable drawn form the pdf defined by SIRT
+%   Z - uniform random variables, d x n
+%   J - Jacobianx, (d x d) x n, each d x d block is the Jabocian for X(:,j)
 
 d = length(obj.cores);
 n = size(r,2);
@@ -15,7 +14,7 @@ if size(r,1) ~= d
 end
 J = zeros(d,n*d);
 
-if obj.marginal_direction > 0 % from left to right
+if obj.int_dir > 0 % from left to right
     % function value of each block
     block_ftt = cell(d,1);
     block_mar = cell(d,1);

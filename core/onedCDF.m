@@ -5,7 +5,6 @@ classdef onedCDF
     end
     
     methods (Abstract)
-        pdf2cdf(obj)
         invert_cdf(obj)
         eval_cdf(obj)
         eval_cdf_deri(obj)

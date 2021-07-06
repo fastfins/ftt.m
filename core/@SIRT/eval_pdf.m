@@ -1,15 +1,15 @@
 function fx = eval_pdf(obj, x)
-% Evaluate the marginalise pdf represented by ftt
+% Evaluate the normalised (marginal) pdf represented by squared FTT.
+%   f = EVAL_PDF(irt, x)
 %
-%   x   - input variables
-%
-%   fx  - marginal density at x
+%   x - input variables
+%   f - marginal density at x
 
 dz = size(x,1);
 d = length(obj.cores);
-if obj.marginal_direction > 0
+if obj.int_dir > 0
     % marginalised from the right
-    fxl = eval_block(obj, x, obj.marginal_direction);
+    fxl = eval_block(obj, x, obj.int_dir);
     if dz < d
         fx = sum((fxl*obj.ms{dz+1}).^2, 2)'/obj.z;
     else
@@ -17,7 +17,7 @@ if obj.marginal_direction > 0
     end
 else
     % marginalised from the left
-    fxg = eval_block(obj, x, obj.marginal_direction);
+    fxg = eval_block(obj, x, obj.int_dir);
     if dz < d
         ie = (d-dz)+1;
         fx = sum((obj.ms{ie-1}*fxg).^2, 1)/obj.z;

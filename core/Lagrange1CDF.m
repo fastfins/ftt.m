@@ -35,10 +35,6 @@ classdef Lagrange1CDF < Lagrange1 & piecewiseCDF
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         function data = pdf2cdf(obj, pdf)
-            if (sum(pdf(:)<0)>0)
-                disp(['negative pdf ' num2str(sum(pdf(:)<0))])
-            end
-            
             data.size = size(pdf,2);
             if data.size > 1
                 %{

@@ -1,37 +1,17 @@
 function z = eval_rt(obj, r)
-% Evaluate squared RT z = T(r), where z is uniform and r is target r.v.
+% Evaluate the squared Rosenblatt transport Z = R(X), where Z is the uniform 
+% random variable and X is the target random variable. 
+%   Z = EVAL_RT(irt, X)
 %
-%   r   - random variable drawn form the pdf defined by SIRT
-%
-%   z   - uniform random variables, d x n
-%
-% Example:
-%
-% % setup the model problem
-% d = 5;
-% a = 0.8;
-% data = setup_ou_process(d, a);
-% func  = @(x) eval_ou_process(data, x); % the pdf
-% % setup polynomial
-% poly  = Legendre(30, [-5,5]);
-% % options for building FTT
-% opt   = FTToption('sqrt_flag', true);
-% % build FTT
-% ftt   = FTT(func, d, poly, opt);
-% build IRT
-% irt  = SIRT(ftt);
-% ealuate IRT
-% z = rand(d, 1E4);
-% [r,f] = eval_irt(irt, z);
-% % After evaluating RT, we should have zz = z
-% zz = eval_rt(irt, r);
-%
+%   X - random variable drawn form the pdf defined by SIRT
+%   Z - uniform random variables, d x n
+
 
 d = length(obj.cores);
 [dr,n] = size(r);
 z = zeros(dr,n);
 
-if obj.marginal_direction > 0 % from left to right
+if obj.int_dir > 0 % from left to right
     frl = ones(n,1);
     for k = 1:dr
         rkm = size(obj.cores{k}, 1);

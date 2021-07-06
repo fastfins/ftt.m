@@ -1,29 +1,22 @@
 function obj = marginalise(obj, dir)
-% Marginalise the pdf represented by ftt sequentially dimension by dimension
+% Marginalise the pdf represented by FTT dimension by dimension.
+%   irt = MARGINALISE(irt, int_dir)
 %
-%   ftt - A given function tensor train
-%
-%   dir - The direction of the marginalisation
-%           >0: from the last dimension, marginalise to the first
-%           <0: from the first dimension, marginalise to the last
-%
-%   z   - Normalising constant
-%
-%   ys  - A cell array holding marginalised coefficents for evaluting SIRT
-%
-%   ms  - A cell array holding marginalised coefficents for marginal pdf
+%   int_dir - The direction of the marginalisation
+%             >0: marginalise to the first from the last dimension 
+%             <0: marginalise to the last from the first dimension 
 
 if nargin > 1
-    obj.marginal_direction = dir;
+    obj.int_dir = dir;
 else
-    obj.marginal_direction = obj.direction;
+    obj.int_dir = 1;
 end
 
 d  = length(obj.cores);
 obj.ys = cell(d, 1);
 obj.ms = cell(d, 1);
 
-if obj.marginal_direction > 0
+if obj.int_dir > 0
     % start with the last dim, upper triangular Chol of the mass matrix
     % ys{d} is built but shouldn't be used
     Ligeqk  = 1;

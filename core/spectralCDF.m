@@ -41,23 +41,10 @@ classdef spectralCDF < onedCDF
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        function data = pdf2cdf(obj, pdf)
-            if (sum(pdf(:)<0)>0)
-                disp(['negative pdf ' num2str(sum(pdf(:)<0))])
-            end
-            
-            data.size = size(pdf,2);
-            data.coef = obj.node2basis*pdf;
-            data.cdf_nodes = obj.cdf_basis2node*data.coef;
-            data.base = data.cdf_nodes(1,:);
-            data.norm = data.cdf_nodes(end,:) - data.base;
-            data.cdf_nodes = data.cdf_nodes - data.base;
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
         function z = eval_cdf(obj, pk, r)
-            
+            if (sum(pk(:)<0)>0)
+                disp(['negative pdf ' num2str(sum(pk(:)<0))])
+            end
             if size(pk,2) > 1 && size(pk,2) ~= length(r)
                 error('Error: dimenion mismatch')
             end
@@ -94,22 +81,28 @@ classdef spectralCDF < onedCDF
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         function r = invert_cdf(obj, pk, xi)
-            
-            data = pdf2cdf(obj, pk);
-            
-            if data.size > 1 && data.size ~= length(xi)
+            if (sum(pk(:)<0)>0)
+                disp(['negative pdf ' num2str(sum(pk(:)<0))])
+            end
+            data_size = size(pk,2);
+            coef = obj.node2basis*pk;
+            cdf_nodes = obj.cdf_basis2node*coef;
+            cdf_base  = cdf_nodes(1,:);
+            cdf_nodes = cdf_nodes - cdf_base;
+            cdf_norm  = cdf_nodes(end,:);
+            if data_size > 1 && data_size ~= length(xi)
                 error('Error: dimenion mismatch')
             end
-            
+            %
             xi = reshape(xi,[],1);
             r = zeros(size(xi));
             
-            if data.size == 1
-                rhs = xi.*data.norm; % vertical
-                ind = sum(reshape(data.cdf_nodes,1,[]) < rhs(:),2)';
+            if data_size == 1
+                rhs = xi.*cdf_norm; % vertical
+                ind = sum(reshape(cdf_nodes,1,[]) < rhs(:),2)';
             else
-                rhs = xi(:).*data.norm(:); % vertical
-                ind = sum(data.cdf_nodes < reshape(rhs,1,[]), 1);
+                rhs = xi(:).*cdf_norm(:); % vertical
+                ind = sum(cdf_nodes < reshape(rhs,1,[]), 1);
             end
             mask1 = ind==0 | reshape(xi,1,[])<=eps;
             mask3 = ind==length(obj.sampling_nodes) | reshape(xi,1,[])>=1-eps;
@@ -121,11 +114,11 @@ classdef spectralCDF < onedCDF
             a = obj.sampling_nodes(ind(mask2));
             b = obj.sampling_nodes(ind(mask2)+1);
             %
-            if data.size == 1
-                r(mask2) = regula_falsi(@(x) eval_int(obj,data.coef,x)-(data.base+rhs(mask2)),...
+            if data_size == 1
+                r(mask2) = regula_falsi(@(x) eval_int(obj,coef,x)-(cdf_base+rhs(mask2)),...
                     obj.tol, a(:), b(:));
             else
-                r(mask2) = regula_falsi(@(x) eval_int(obj,data.coef(:,mask2),x)-(reshape(data.base(mask2),[],1)+rhs(mask2)),...
+                r(mask2) = regula_falsi(@(x) eval_int(obj,coef(:,mask2),x)-(reshape(cdf_base(mask2),[],1)+rhs(mask2)),...
                     obj.tol, a(:), b(:));
             end
             %
@@ -138,10 +131,10 @@ classdef spectralCDF < onedCDF
         %{
         function F = invert_obj(obj, data, mask, x)
             if data.size == 1
-                F = eval_int(obj, data.coef(:,mask), x) - data.base(mask);
+                F = eval_int(obj, coef(:,mask), x) - cdf_base(mask);
             else
-                tmp = eval_int(obj, data.coef(:,mask), x);
-                F = reshape(tmp, size(x)) - reshape(data.base(mask), size(x));
+                tmp = eval_int(obj, coef(:,mask), x);
+                F = reshape(tmp, size(x)) - reshape(cdf_base(mask), size(x));
             end    
         end
         %}

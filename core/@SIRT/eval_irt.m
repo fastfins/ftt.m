@@ -1,37 +1,18 @@
 function [r,f] = eval_irt(obj, z)
-% Evaluate squared IRT r = T(z), where z is uniform
+% Evaluate the inverse of the squared Rosenblatt transport X = R^{-1}(Z), 
+% where X is the target random variable and Z is uniform. 
+%   [X,f] = EVAL_IRT(irt, Z)
 %
-%   z   - uniform random variables, d x n
-%
-%   r   - random variable drawn form the pdf defined by SIRT
-%
-%   f   - pdf function values of those random variables
-%
-% Example:
-%
-% % setup the model problem
-% d = 5;
-% a = 0.8;
-% data = setup_ou_process(d, a);
-% func  = @(x) eval_ou_process(data, x); % the pdf
-% % setup polynomial
-% poly  = Legendre(30, [-5,5]);
-% % options for building FTT
-% opt   = FTToption('sqrt_flag', true);
-% % build FTT
-% ftt   = FTT(func, d, poly, opt);
-% build IRT
-% irt  = SIRT(ftt);
-% ealuate
-% [r,f] = eval_irt(irt, rand(d, 1E4));
-%
+%   Z - uniform random variables, d x n
+%   X - random variable drawn form the pdf defined by SIRT
+%   f - pdf of X
 
 
 d = length(obj.cores);
 [dz,n] = size(z);
 r = zeros(dz,n);
 
-if obj.marginal_direction > 0 % from left to right
+if obj.int_dir > 0 % from left to right
     frl = ones(n,1);
     for k = 1:dz
         rkm = size(obj.cores{k}, 1);

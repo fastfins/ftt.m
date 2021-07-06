@@ -33,8 +33,9 @@ if isempty(obj.cores)
         obj.cores{k} = zeros(obj.opt.init_rank, obj.oneds{k}.num_nodes, obj.opt.init_rank);
     end
     obj.cores{d} = zeros(obj.opt.init_rank, obj.oneds{d}.num_nodes, 1);
+    %{
     % initialise the residual blocks for AMEN
-    if strcmp(obj.opt.tt_method, 'amen')
+    if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_x)
         if size(sample_x, 2) < obj.opt.kick_rank
             disp('Not enough number of user provided samples to enrich ftt')
             obj.res_x{d} = sample_domain(obj.oneds{d}, obj.opt.kick_rank);
@@ -52,8 +53,70 @@ if isempty(obj.cores)
             obj.res_w{k} = randn(obj.opt.init_rank, obj.opt.kick_rank);
         end
     end
+    %}
 else
     obj.direction = -obj.direction;
+    %{
+    if obj.direction > 0
+        if size(sample_x, 2) < obj.opt.kick_rank
+            disp('Not enough number of user provided samples to enrich ftt')
+            obj.res_x{d} = sample_domain(obj.oneds{d}, obj.opt.kick_rank);
+            for k = (d-1):-1:1
+                obj.res_x{k} = [obj.res_x{k+1}; sample_domain(obj.oneds{k}, obj.opt.kick_rank)];
+            end
+        else
+            % nested interpolation points for res
+            for k = d:-1:1
+                obj.res_x{k} = sample_x(k:d, 1:obj.opt.kick_rank);
+            end
+        end
+    else
+    end
+    % reinitialise the residual blocks for AMEN
+    if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_w)
+        if obj.direction < 0 % direction has already been flipped
+            for k = 1:(d-1)
+                obj.res_w{k} = randn(obj.opt.kick_rank, size(obj.cores{k},3));
+            end
+            obj.res_w{d} = randn(size(obj.cores{d},1), obj.opt.kick_rank);
+        else
+            obj.res_w{1} = randn(obj.opt.kick_rank, size(obj.cores{1},3));
+            for k = 2:d
+                obj.res_w{k} = randn(size(obj.cores{k},1), obj.opt.kick_rank);
+            end
+        end
+    end
+    %}
+end
+% initialise the residual coordinates for AMEN
+if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_x)
+    if obj.direction > 0 % direction has already been flipped
+        if size(sample_x, 2) < obj.opt.kick_rank
+            disp('Not enough number of user provided samples to enrich ftt')
+            obj.res_x{d} = sample_domain(obj.oneds{d}, obj.opt.kick_rank);
+            for k = (d-1):-1:1
+                obj.res_x{k} = [obj.res_x{k+1}; sample_domain(obj.oneds{k}, obj.opt.kick_rank)];
+            end
+        else
+            % nested interpolation points for res
+            for k = d:-1:1
+                obj.res_x{k} = sample_x(k:d, 1:obj.opt.kick_rank);
+            end
+        end
+    else
+        if size(sample_x, 2) < obj.opt.kick_rank
+            disp('Not enough number of user provided samples to enrich ftt')
+            obj.res_x{1} = sample_domain(obj.opt.kick_rank, obj.oneds{d});
+            for k = 2:d
+                obj.res_x{k} = [sample_domain(obj.opt.kick_rank, obj.oneds{k}); obj.res_x{k-1}];
+            end
+        else
+            % nested interpolation points for res
+            for k = d:-1:1
+                obj.res_x{k} = sample_x(1:obj.opt.kick_rank, k:d);
+            end
+        end
+    end
 end
 % reinitialise the residual blocks for AMEN
 if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_w)
@@ -69,7 +132,6 @@ if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_w)
         end
     end
 end
-
 % get dimensions of each TT block
 % start
 f_evals  = 0;

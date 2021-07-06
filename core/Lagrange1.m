@@ -191,7 +191,7 @@ classdef Lagrange1 < piecewise
                 %
                 coi = [coi; ind(:); ind(:)+1];
                 roi = [roi; repmat(reshape(find(mask_inside),[],1), 2, 1)];
-                val = [val; -ones(length(ind), 1)./obj.elem_size; ones(length(ind)./obj.elem_size, 1)];
+                val = [val; -ones(length(ind), 1)./obj.elem_size; ones(length(ind),1)./obj.elem_size];
             end
             
             bas = sparse(roi, coi, val, n, obj.num_nodes);

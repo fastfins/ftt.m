@@ -251,7 +251,7 @@ classdef Lagrangep < piecewise
                 %
                 a = 1./sum(tmp_m1, 2);
                 b = sum(tmp_m2, 2).*(a.^2);
-                lbs = (tmp_m1.*b - tmp_m2.*a)./reshape(obj.jac(ind), [], 1);
+                lbs = (tmp_m1.*b - tmp_m2.*a)./obj.jac; 
                 
                 % embed lbs into the global grid
                 % obj.global2local(ind,:) are the col indices

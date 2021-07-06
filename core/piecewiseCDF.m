@@ -2,6 +2,7 @@ classdef piecewiseCDF < onedCDF
     
     methods (Abstract)
         eval_int_lag_local(obj)
+        pdf2cdf(obj)
     end
     
     methods
@@ -79,6 +80,9 @@ classdef piecewiseCDF < onedCDF
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         function z = eval_cdf(obj, pk, r)
+            if (sum(pk(:)<0)>0)
+                disp(['negative pdf ' num2str(sum(pk(:)<0))])
+            end
             data = pdf2cdf(obj, pk);
             z = eval_int_lag(obj, data, r);
             z = reshape(z(:)./data.norm(:), size(r));
@@ -95,6 +99,9 @@ classdef piecewiseCDF < onedCDF
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         function r = invert_cdf(obj, pk, xi)
+            if (sum(pk(:)<0)>0)
+                disp(['negative pdf ' num2str(sum(pk(:)<0))])
+            end
             data = pdf2cdf(obj, pk);
             if data.size > 1 && data.size ~= length(xi)
                 error('Error: dimenion mismatch')

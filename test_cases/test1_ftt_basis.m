@@ -24,7 +24,7 @@ for k = 1:d
     debug_x(k,:) = sample_domain(poly1, debug_size);
 end
 
-opt1 = FTToption('max_als', 5, 'als_tol', 1E-8, 'local_tol', 1E-10, 'kick_rank', 2, 'init_rank', 6, 'max_rank', 12);
+opt1 = FTToption('max_als', 6, 'als_tol', 1E-8, 'local_tol', 1E-10, 'kick_rank', 2, 'init_rank', 6, 'max_rank', 12);
 opt2 = FTToption('tt_method', 'random', 'max_als', 5, 'als_tol', 1E-8, 'local_tol', 1E-10, 'kick_rank', 2, 'init_rank', 6, 'max_rank', 12);
 
 polys = {poly1, poly2, poly3};
