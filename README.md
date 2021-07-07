@@ -14,7 +14,7 @@ Todo list:
 
 References: 
 * For SIRT, DIRT, and IRT: 
-    * Cui and Dolgov (2021). Deep Composition of Tensor Trains using Squared Inverse Rosenblatt Transports. Foundation of Computational Mathematics, too appear. 
+    * Cui and Dolgov (2021). Deep Composition of Tensor Trains using Squared Inverse Rosenblatt Transports. Foundation of Computational Mathematics, to appear. 
     * Dolgov, Anaya-Izquierdo, Fox and Scheichl (2020). Approximation and sampling of multivariate probability distributions in the tensor train decomposition. Statistics and Computing 30(3), 603-625.
 * For building the tensor train using AMEN:
     * Dolgov, Savostyanov (2014). Alternating minimal energy methods for linear systems in higher dimensions. SIAM Journal on Scientific Computing 36(5), A2248-A2271.
