@@ -1,15 +1,12 @@
-Updated:
-* MaxVol using DEIM as the initial guess
-* transformation to unbounded domain
 
-# Todo list
+* Type `help oned' for selecting one dimensional basis
+* Type 'help FTT' for examples of building FTT. 
+** An additional example can be found in 'test_cases/test1_ftt_basis.m'
+* Type 'help SIRT' for examples of building SIRT. 
+** Additional examples can be found in 'test_cases/test_sirt_OU'
 
-Before the first release
-* Reimplement piecewise linear basis with optimised performance for IRT, this is already in the TT-IRT
-
-Gradient-enhanced FTT (could be useful for LIS as well)
-* Implement piecewise Hermite interpolation basis, so we can use gradient of the density function to build the FTT
-* Implement gradient enhanced spectral collocation
-
-Local computation
-* Create an interface so FTT cross can use local computation to update the function evaluation at interpolation points
+Todo list: 
+* Implement (or interface with) the DIRT class
+* Implement an additional SIRT example.
+* Implement DIRT examples on double banana. 
+* 
