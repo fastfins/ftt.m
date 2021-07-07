@@ -1,4 +1,14 @@
 classdef spectralCDF < onedCDF
+    % spectralCDF class 
+    %
+    % For Fourier basis, FourierCDF is used. For other spectral polynomials
+    % in bounded domains, we first transform the polynomial to the 2nd 
+    % Chebyshev basis, and then apply the inversion. See Chebyshev2ndCDF.
+    %
+    % Before applying root findings, a grid search based on sampling_nodes
+    % is applied to locate the left and right boundary of root finding. 
+    %
+    % See also ChebyshevCDF and FourierCDF.
     
     properties
         sampling_nodes(1,:)

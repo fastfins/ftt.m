@@ -66,7 +66,8 @@ classdef LagrangepCDF < Lagrangep & piecewiseCDF
             obj.cheby = LagrangepCDF.lag2cheby(poly.order*2, poly.local.domain);
             %
             obj.mass    = [];
-            obj.mass_L  = [];
+            obj.mass_R  = [];
+            obj.int_W   = [];
             obj.weights = [];
             %
             % setup global nodes

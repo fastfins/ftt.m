@@ -12,13 +12,9 @@ classdef Fourier < spectral
         function obj = Fourier(order, varargin)
             [obj.order,obj.domain] = spectral.process_input(order,varargin{:});
             %
-            obj.name = 'Fourier';
-            %
             n = obj.order*2 + 2;
             obj.ref_nodes = reshape( sort( (2/n)*(1:n) - 1, 'ascend'), [], 1);
             obj.weights = ones(size(obj.ref_nodes))*(2/n);
-            %
-            obj.name = 'Fourier';
             %
             obj.m   = obj.order+1;
             obj.n   = obj.m*2;

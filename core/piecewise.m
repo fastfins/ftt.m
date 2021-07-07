@@ -1,19 +1,32 @@
 classdef piecewise < oned
+% piecewise class   - Superclass for Lagrange1 (piecewise linear basis) and 
+%                     Larangep (piecewise high order Lagrange)
+%
+% Constructors:
+%   * Lagrange1(n, domain, 'ghost_size', gs, 'bc', type)
+%   * Lagrangep(order, n, domain, 'ghost_size', gs, 'bc', type)
+%
+%   order       - (Required) order of the polynomial 
+%   n           - (Required) number of elements
+%   domain      - (Optional) default is [0,1]
+%   ghost_size  - The parameter 'ghost_size' specify a boundary layer with
+%                 size gs
+%   bc          - The parameter 'bc' specify the type of the boundary layer
+%                 to either 'Dirichlet' or 'Neumann'. With 'Dirichlet', the
+%                 boudnary layer linearly decays to zero. With 'Neumann',
+%                 the boundary layer takes a constant value.
+%
+% See also PIECEWISECDF
     
     properties
         gs % ghostsize
         bc % boundary condition
-        %
         grid(:,1) 
-        %
         num_elems 
         elem_size 
         jac 
-        %
         mass(:,:) 
-        mass_L(:,:) 
         weights(:,1) 
-        name = 'piecewise'
     end
     
     methods (Static)
@@ -65,49 +78,8 @@ classdef piecewise < oned
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        function s = get_name(obj)
-            s = obj.name;
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
         function x = sample_domain(obj, n)
             x = rand(1,n)*(obj.grid(end)-obj.grid(1))+obj.grid(1);
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        function R = mass_r(obj, interp_w)
-            %Evaluate the right factor of the one dimensional mass matrix
-            R = obj.mass_L'*interp_w;
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        function f_int = integral(obj, interp_w)
-            f_int = (obj.weights(:)')*interp_w;
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        function f = eval(obj, f_at_nodes, x)            
-            bas = eval_basis(obj, x(:));
-            f = bas*f_at_nodes;
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        function f = eval_deri(obj, coeff, x)
-            % coeff: function at nodes, n_nodes x ??
-            % x : row vector, 1 x n
-            %
-            f   = zeros(length(x), size(coeff,2));
-            mid = (x >= obj.domain(1)) & (x <= obj.domain(2));
-            %
-            if sum(mid) > 0
-                b = eval_basis_deri(obj, x(mid));
-                f(mid,:) = b*coeff;
-            end
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

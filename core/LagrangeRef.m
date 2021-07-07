@@ -1,39 +1,32 @@
 classdef LagrangeRef
+    % LagrangeRef class
     %
-    %Define the reference Lagrange basis, in the reference domain [0,1]
-    %This function should not be explicitly used
+    % Define the reference Lagrange basis, in the reference domain [0,1].
+    % This function should not be explicitly used.
     %
-    %%%%%
-    %Input:
+    % Constructor input:
+    %   n           - Number of interpolation points, should be greater
+    %                 than or equal to 2
     %
-    %type:
-    %  Type of the interpolation points, options are 'Jacobi' and 'Chebyshev' (2nd)
+    % LagrangeRef Properties:
     %
-    %n:
-    %  Number of interpolation points, should be greater than or equal to 2
-    %
-    %%%%%
-    %Output:
-    %  lag, a data structure contains:
-    %
-    %  domain:     the reference domain
-    %  nodes:      all the interpolation points, 1xn
-    %  num_nodes:  number of nodes
-    %  omega:      barycentric weights of the Lagrange polynomial
-    %  mass:       reference mass matrix
-    %  weights:    reference weighting factors (integration of each basis
-    %              function), 1xn
-    %
-    %Tiangang Cui, August, 2019
+    %   order       - Order of the interpolation polynomial n-1
+    %   domain      - The reference domain
+    %   nodes       - All the interpolation points, nx1
+    %   num_nodes   - Number of nodes
+    %   omega       - Barycentric weights of the Lagrange polynomial
+    %   mass        - Reference mass matrix
+    %   weights     - Reference weighting factors (integration of each basis
+    %                 function), nx1
     
     properties
         domain(1,2) = [0, 1]
-        order 
-        nodes(1,:) 
-        omega(1,:) 
-        num_nodes 
-        mass(:,:) 
-        weights(1,:) 
+        order
+        nodes(:,1)
+        omega(:,1)
+        num_nodes
+        mass(:,:)
+        weights(:,1)
     end
     
     methods
@@ -41,27 +34,23 @@ classdef LagrangeRef
             if n < 2
                 error('We need more than two points to define Lagrange interpolation')
             end
-            
-            obj.nodes       = zeros(1,n);
+            obj.nodes       = zeros(n,1);
             obj.nodes(1)    = 0;
             obj.nodes(end)  = 1;
             obj.num_nodes   = n;
-            
             if n > 2
                 order = n-3;
                 Jacob = Jacobi11(order, [-1,1]);
                 % to the interval [0, 1]
                 obj.nodes(2:n-1) = 0.5*(Jacob.ref_nodes+1);
             end
-            
             % compute the local omega coefficients
-            obj.omega = zeros(1,n);
+            obj.omega = zeros(n,1);
             for j = 1:n
                 ind     = true(n,1);
                 ind(j)  = false;
                 obj.omega(j) = 1./prod( obj.nodes(j) - obj.nodes(ind) );
             end
-            
             % define the mass matrix
             I = eye(n);
             obj.mass = zeros(n);
@@ -72,12 +61,11 @@ classdef LagrangeRef
                 end
             end
             % setup the intergration of each basis
-            obj.weights = zeros(1,n);
+            obj.weights = zeros(n,1);
             for i = 1:n
                 fi = @(x) eval(obj, I(:,i), x);
                 obj.weights(i) = integral(fi, obj.domain(1), obj.domain(2));
             end
-            
         end
         
         function f = eval(obj, f_at_x, x)

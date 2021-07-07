@@ -8,8 +8,6 @@ classdef Chebyshev2nd < spectral
         function obj = Chebyshev2nd(order, varargin)
             [obj.order,obj.domain] = spectral.process_input(order,varargin{:});
             %
-            obj.name = 'Chebyshev2nd';
-            %
             n = obj.order + 1;
             obj.ref_nodes = reshape( sort( double( cos( vpa(pi)*(1:n)/(n+1) ) ), 'ascend'), [], 1);
             obj.weights = double( sin( vpa(pi)*(1:n)/(n+1)).^2*vpa(pi)/(n+1) );

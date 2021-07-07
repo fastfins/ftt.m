@@ -123,7 +123,7 @@ a = integral(f, 2,4);
 for i = 1:5
     for j = 1:6
         def = Lagrangep(2+j, 1+i, [2, 4], 'bc', 'Neumann');
-        err(i,j) = abs(sum(f(def.nodes(:)).*def.weights) - a);
+        err(i,j) = abs(def.int_W*f(def.nodes(:)) - a);
     end
 end
 semilogy(err')

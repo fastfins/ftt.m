@@ -1,4 +1,18 @@
 classdef piecewiseCDF < onedCDF
+    % piecewiseCDF class 
+    %
+    % For piecewise linear basis (Lagrange1), we directly apply Newton's
+    % method after a grid search based on the Lagrange nodes. 
+    %
+    % For piecewise high order basis (Lagrangep), we first convert each 
+    % piesewise Lagerange polynomial into 2nd Chebyshev basis, and then
+    % work out the CDF. Before applying root findings, a grid search based 
+    % on Chebyshev nodes is applied to locate the left and right boundary 
+    % of root finding. The Chebyshev nodes contains both ends of the
+    % interpolation interval. Newton's method is fragile towards the end of
+    % the interval, so it's been modified to stay in the search interval. 
+    %
+    % See also Lagrange1CDF and LagrangepCDF.
     
     methods (Abstract)
         eval_int_lag_local(obj)

@@ -31,12 +31,12 @@ polys = {poly1, poly2, poly3};
 for i = 1:3
     tic;
     ftt{i,1} = FTT(func, d, polys{i}, opt1, 'debug_x', debug_x);
-    ftt{i,2} = round(ftt{i,1}, 1E-6);
+    ftt{i,2} = round(ftt{i,1}, 1E-4);
     ftt{i,3} = FTT(func, d, ftt{i,1}, 'debug_x', debug_x);
     ftt{i,4} = FTT(func, d, ftt{i,2}, 'debug_x', debug_x);
     
     ftt{i,5} = FTT(func, d, polys{i}, opt2, 'debug_x', debug_x);
-    ftt{i,6} = round(ftt{i,5}, 1E-6);
+    ftt{i,6} = round(ftt{i,5}, 1E-4);
     ftt{i,7} = FTT(func, d, ftt{i,5}, 'debug_x', debug_x);
     ftt{i,8} = FTT(func, d, ftt{i,6}, 'debug_x', debug_x);
     toc

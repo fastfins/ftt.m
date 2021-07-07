@@ -11,7 +11,6 @@ classdef Jacobi11 < recurr
             normalising = reshape( sqrt( (2*k+3).*(k+2)./(8*(k+1)) ), 1, []);
             obj@recurr(order, domain, a, b, c, normalising);
             %
-            obj.name = 'Jacobi11';
             obj.weights = obj.weights*4/3;
             obj.node2basis = obj.node2basis*4/3;
         end

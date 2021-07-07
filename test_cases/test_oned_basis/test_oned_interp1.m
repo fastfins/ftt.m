@@ -120,6 +120,6 @@ f = @(y) 1./log(abs(y)+0.01) + sin(y*5*pi);
 a = integral(f, 2,4);
 for j = 1:6
     def = Lagrange1(5*j, [2, 4], 'bc', 'Neumann');
-    err(j) = abs(sum(f(def.nodes(:)).*def.weights) - a);
+    err(j) = abs(def.int_W*f(def.nodes(:)) - a);
 end
 semilogy(err')

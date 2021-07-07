@@ -1,15 +1,25 @@
 classdef spectral < oned
+% spectral class    - Superclass for Fourier, Chebyshev1st, Chebyshev2nd,
+%                     and recurr subclasses. The recurr class implements
+%                     Legendre, Jabobi11, Hermite, and Laguerre subclasses
+%
+% Constructors:
+%   * poly(order, domain)
+%
+%   poly        - Choose one from Fourier, Chebyshev1st, Chebyshev2nd, 
+%                 Legendre, Jabobi11, Hermite, and Laguerre. 
+%   order       - (Required) order of the polynomial 
+%   domain      - (Optional) default is [0,1]
+%
+% See also SPECTRALCDF
     
     properties
         ref_nodes(:,1) 
         weights(:,1) 
-        %
-        % for evaluating the polynomial
         normalising(1,:) 
         omegas(:,1) 
         basis2node(:,:) 
         node2basis(:,:) 
-        name = 'spectral'
     end
     
     methods (Abstract)
@@ -43,12 +53,9 @@ classdef spectral < oned
             obj.omegas  = obj.omegas/J;
             obj.weights = reshape(obj.weights, size(obj.ref_nodes));
             obj.node2basis  = obj.basis2node'*diag(obj.weights);
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        function s = get_name(obj)
-            s = obj.name;
+            %
+            obj.mass_R  = sqrt(obj.weights./obj.omegas).*obj.basis2node;
+            obj.int_W   = reshape(obj.weights(:)./obj.omegas(:), 1, [])*obj.basis2node;
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,43 +80,6 @@ classdef spectral < oned
         
         function x = sample_domain(obj, n)
             x = rand(1,n)*(obj.domain(2)-obj.domain(1))+obj.domain(1);
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        function R = mass_r(obj, interp_w)
-            %Evaluate the right factor of the one dimensional mass matrix
-            R = (sqrt(obj.weights./obj.omegas).*obj.basis2node)*interp_w;
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        function f_int = integral(obj, interp_w)
-            f_int = ((obj.weights./obj.omegas)'*obj.basis2node)*interp_w;
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        function f = eval(obj, coeff, x)
-            f = zeros(length(x), size(coeff,2));
-            mid = (x >= obj.domain(1)) & (x <= obj.domain(2));
-            b = eval_basis(obj, x(mid));
-            f(mid,:) = b*coeff;
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        function f = eval_deri(obj, coeff, x)
-            % x : row vector, 1 x n
-            % coeff: n_basis x ??
-            %
-            f   = zeros(length(x), size(coeff,2));
-            mid = (x >= obj.domain(1)) & (x <= obj.domain(2));
-            %
-            if sum(mid) > 0
-                b = eval_basis_deri(obj, reshape(x(mid),[],1));
-                f(mid,:) = b*coeff;
-            end
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

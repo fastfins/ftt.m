@@ -22,9 +22,9 @@ polys{2} = Fourier(20, [-5,5]);
 polys{3} = Lagrangep(5, 8, [-5,5], 'ghost_size', 1E-5);
 polys{4} = Lagrange1(40, [-5,5], 'ghost_size', 1E-5);
 
-opts{1} = FTToption('tt_method', 'amen', 'sqrt_flag', true, ...
+opts{1} = FTToption('tt_method', 'amen', 'max_als', 5, 'sqrt_flag', true, ...
     'als_tol', 1E-4, 'local_tol', 1E-10, 'max_rank', 19, 'max_als', 5);
-opts{2} = FTToption('tt_method', 'random', 'sqrt_flag', true, ...
+opts{2} = FTToption('tt_method', 'random', 'max_als', 5, 'sqrt_flag', true, ...
     'als_tol', 1E-4, 'local_tol', 1E-10, 'max_rank', 19, 'max_als', 5);
 
 
@@ -33,6 +33,8 @@ for i = 1:4
         tic;
         irts{i,j} = SIRT(func, d, polys{i}, opts{j}, 'debug_x', debug_x, 'sample_x', sample_x);
         toc
+        tmp = round(irts{i,1}, 1E-2);
+        irts{i,3} = SIRT(func, d, tmp, 'debug_x', debug_x);
     end
 end
 
@@ -43,7 +45,7 @@ end
 % sample
 z = rand(d, 1E4);
 for i = 1:4
-    for j = 1:2
+    for j = 1:3
         figure;
         % test 1
         ind  = 1:8;

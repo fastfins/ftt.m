@@ -13,7 +13,7 @@ end
 
 names = cell(1, 4);
 for i = 1:4
-    names{i} = get_name(polys{i,1});
+    names{i} = class(polys{i,1});
 end
 
 figure

@@ -10,7 +10,6 @@ classdef Laguerre < recurr
             normalising = ones(1, order+1);
             obj@recurr(order, domain, a, b ,c, normalising);
             %
-            obj.name = 'Laguerre';
         end
         
         function [f,w] = eval_ref_basis(obj, x)

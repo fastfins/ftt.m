@@ -69,14 +69,14 @@ end
 % enrich basis
 if isa(oned, 'piecewise')
     % T = kron(speye(rold), oned.mass_L') * [B, Fu];
-    T = reshape(oned.mass_L'*reshape([B,Fu],oned.num_nodes,[]),size(B,1),[]);
+    T = reshape(oned.mass_R*reshape([B,Fu],oned.num_nodes,[]),size(B,1),[]);
     [Q,R] = qr(T,0);
     if size(T,1) < size(T,2)
         Q = Q(:,1:size(T,1));
     end
     % interpolation basis
     % B = full(kron(speye(rold),oned.mass_L') \ Q);
-    B = reshape(oned.mass_L'\reshape(Q,oned.num_nodes,[]),size(Q,1),[]);
+    B = reshape(oned.mass_R\reshape(Q,oned.num_nodes,[]),size(Q,1),[]);
 else
     T = [B,Fu];
     [B,R] = qr(T,0);

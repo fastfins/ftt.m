@@ -33,10 +33,12 @@ for i = 1:4
         irts{i,j} = SIRT(func, d, polys{i}, opts{j}, 'debug_x', debug_x, 'sample_x', sample_x);
         toc
     end
+    tmp = round(irts{i,1}, 1E-2);
+    irts{i,3} = SIRT(func, d, tmp, 'debug_x', debug_x, 'sample_x', sample_x);
 end
 
 for i = 1:4
-    for j = 1:2
+    for j = 1:3
         tic;
         irts{i,j} = marginalise(irts{i,j}, -1);
         toc
@@ -46,7 +48,7 @@ end
 % sample
 z = rand(d, 1E4);
 for i = 1:4
-    for j = 1:2
+    for j = 1:3
         figure
         tic;[r,f] = eval_irt(irts{i,j}, z);toc
         tic;z0 = eval_rt(irts{i,j}, r);toc
