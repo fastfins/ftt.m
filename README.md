@@ -13,5 +13,11 @@ Todo list:
 * Implement DIRT examples on double banana. 
 
 References: 
-* For SIRT and DIRT: 
+* For SIRT, DIRT, and IRT: 
     * Cui and Dolgov (2021). Deep Composition of Tensor Trains using Squared Inverse Rosenblatt Transports. Foundation of Computational Mathematics, too appear. 
+    * Dolgov, Anaya-Izquierdo, Fox and Scheichl (2020). Approximation and sampling of multivariate probability distributions in the tensor train decomposition. Statistics and Computing 30(3), 603-625.
+* For building the tensor train using AMEN:
+    * Dolgov, Savostyanov (2014). Alternating minimal energy methods for linear systems in higher dimensions. SIAM Journal on Scientific Computing 36(5), A2248-A2271.
+* For functional tensor train:
+    * Gorodetsky, Karaman and Marzouk (2018). A continuous analogue of the tensor-train decomposition. Computer Methods in Applied Mechanics and Engineering 347, 59-84.
+    * Bigoni, Engsig-Karup, Marzouk (2016). Spectral tensor-train decomposition. SIAM Journal on Scientific Computing 38(4), A2405-A2439.
