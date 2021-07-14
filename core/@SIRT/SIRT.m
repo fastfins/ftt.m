@@ -10,7 +10,7 @@ classdef SIRT < FTT
     %   ms          - A cell array for computing the marginal density.
     %   oned_cdfs   - One dimensional bases for building CDFs.
     %
-    % FTT Methods:
+    % SIRT Methods:
     %   marginalise - Marginalise the squared FTT.
     %   eval_pdf    - Evaluate the normalised (marginal) pdf.
     %   eval_irt    - X = R^{-1}(Z), where X is the target random variable, 
@@ -210,12 +210,12 @@ classdef SIRT < FTT
         obj = marginalise(obj, dir) 
         % Marginalise the pdf represented by ftt dimension by dimension
         
-        function obj = SIRT(func, d, arg, varargin)
+        function obj = SIRT(func, d, varargin)
             % Call FTT constructor to build the FTT and setup data 
             % structures for SIRT. Need to run marginalise after this.
             
             %
-            obj@FTT(func, d, arg, varargin{:})
+            obj@FTT(func, d, varargin{:})
             %
             if strcmp(obj.opt.tt_method, 'amen')
                 obj = round(obj);

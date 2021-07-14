@@ -1,11 +1,10 @@
 function z = int(obj)
 % Integrate the entire TT. z = INT(tt)
 
-d = length(obj.cores);
 if obj.direction > 0
     % last dimenion
     figeqk  = 1;
-    for k = d:-1:1
+    for k = obj.d:-1:1
         nx  = obj.oneds{k}.num_nodes;
         rkm = size(obj.cores{k}, 1);
         rk  = size(obj.cores{k}, 3);
@@ -20,7 +19,7 @@ if obj.direction > 0
 else
     % first dimenion
     fileqk = 1;
-    for k = 1:d
+    for k = 1:obj.d
         nx  = obj.oneds{k}.num_nodes;
         rkm = size(obj.cores{k}, 1);
         rk  = size(obj.cores{k}, 3);

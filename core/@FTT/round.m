@@ -4,18 +4,17 @@ function obj = round(obj, thres)
 %   tol - the truncation threshold of each SVD relative to the largest 
 %         singular value)
 
-
+rs = rank(obj);
 if nargin == 1
     thres = obj.opt.local_tol;
 end
-[d,rs,~] = size(obj);
 % Apply double rounding to get to the starting direction
 for ii = 1:2
     obj.direction = -obj.direction;
     if obj.direction > 0
-        ind = 1:(d-1);
+        ind = 1:(obj.d-1);
     else
-        ind = d:-1:2;
+        ind = obj.d:-1:2;
     end
     %
     % start
@@ -31,7 +30,7 @@ for ii = 1:2
                 obj.direction, obj.opt.int_method, thres, obj.opt.max_rank);
             rs(k) = size(obj.cores{k}, 3);
         else
-            if k == d
+            if k == obj.d
                 Jx_right = [];
             else
                 Jx_right = obj.interp_x{k+1};

@@ -1,25 +1,25 @@
-function obj = cross(obj, func, d, sample_x, debug_x)
+function obj = cross(obj, func, sample_x, debug_x)
 % Cross iterations for building the TT, only call this function if you know
-% what you are doing 
+% what you are doing
 
 % initilise TT cores
 if isempty(obj.cores)
     % copy properties
     obj.direction = 1;
     % nested interpolation points
-    obj.cores = cell(d,1);
+    obj.cores = cell(obj.d,1);
     %
     % use the user provided sample set
     if size(sample_x, 2) < obj.opt.init_rank
         disp('Not enough number of samples to initialise ftt')
         sample_x = [];
-        obj.interp_x{d} = sample_domain(obj.oneds{d}, obj.opt.init_rank);
-        for k = (d-1):-1:1
+        obj.interp_x{obj.d} = sample_domain(obj.oneds{obj.d}, obj.opt.init_rank);
+        for k = (obj.d-1):-1:1
             obj.interp_x{k} = [obj.interp_x{k+1}; sample_domain(obj.oneds{k}, obj.opt.init_rank)];
         end
     else
-        for k = d:-1:1
-            obj.interp_x{k} = sample_x(k:d, 1:obj.opt.init_rank);
+        for k = obj.d:-1:1
+            obj.interp_x{k} = sample_x(k:obj.d, 1:obj.opt.init_rank);
         end
         sample_x(:,1:obj.opt.init_rank) = [];
     end
@@ -29,16 +29,16 @@ if isempty(obj.cores)
     m = size(y,1);
     % interpolation weights
     obj.cores{1} = zeros(1, obj.oneds{1}.num_nodes, obj.opt.init_rank, m);
-    for k = 2:d-1
+    for k = 2:obj.d-1
         obj.cores{k} = zeros(obj.opt.init_rank, obj.oneds{k}.num_nodes, obj.opt.init_rank);
     end
-    obj.cores{d} = zeros(obj.opt.init_rank, obj.oneds{d}.num_nodes, 1);
+    obj.cores{obj.d} = zeros(obj.opt.init_rank, obj.oneds{obj.d}.num_nodes, 1);
     %{
     % initialise the residual blocks for AMEN
     if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_x)
         if size(sample_x, 2) < obj.opt.kick_rank
             disp('Not enough number of user provided samples to enrich ftt')
-            obj.res_x{d} = sample_domain(obj.oneds{d}, obj.opt.kick_rank);
+            obj.res_x{obj.d} = sample_domain(obj.oneds{obj.d}, obj.opt.kick_rank);
             for k = (d-1):-1:1
                 obj.res_x{k} = [obj.res_x{k+1}; sample_domain(obj.oneds{k}, obj.opt.kick_rank)];
             end
@@ -60,7 +60,7 @@ else
     if obj.direction > 0
         if size(sample_x, 2) < obj.opt.kick_rank
             disp('Not enough number of user provided samples to enrich ftt')
-            obj.res_x{d} = sample_domain(obj.oneds{d}, obj.opt.kick_rank);
+            obj.res_x{obj.d} = sample_domain(obj.oneds{obj.d}, obj.opt.kick_rank);
             for k = (d-1):-1:1
                 obj.res_x{k} = [obj.res_x{k+1}; sample_domain(obj.oneds{k}, obj.opt.kick_rank)];
             end
@@ -78,7 +78,7 @@ else
             for k = 1:(d-1)
                 obj.res_w{k} = randn(obj.opt.kick_rank, size(obj.cores{k},3));
             end
-            obj.res_w{d} = randn(size(obj.cores{d},1), obj.opt.kick_rank);
+            obj.res_w{obj.d} = randn(size(obj.cores{obj.d},1), obj.opt.kick_rank);
         else
             obj.res_w{1} = randn(obj.opt.kick_rank, size(obj.cores{1},3));
             for k = 2:d
@@ -93,27 +93,27 @@ if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_x)
     if obj.direction > 0 % direction has already been flipped
         if size(sample_x, 2) < obj.opt.kick_rank
             disp('Not enough number of user provided samples to enrich ftt')
-            obj.res_x{d} = sample_domain(obj.oneds{d}, obj.opt.kick_rank);
-            for k = (d-1):-1:1
+            obj.res_x{obj.d} = sample_domain(obj.oneds{obj.d}, obj.opt.kick_rank);
+            for k = (obj.d-1):-1:1
                 obj.res_x{k} = [obj.res_x{k+1}; sample_domain(obj.oneds{k}, obj.opt.kick_rank)];
             end
         else
             % nested interpolation points for res
-            for k = d:-1:1
-                obj.res_x{k} = sample_x(k:d, 1:obj.opt.kick_rank);
+            for k = obj.d:-1:1
+                obj.res_x{k} = sample_x(k:obj.d, 1:obj.opt.kick_rank);
             end
         end
     else
         if size(sample_x, 2) < obj.opt.kick_rank
             disp('Not enough number of user provided samples to enrich ftt')
-            obj.res_x{1} = sample_domain(obj.opt.kick_rank, obj.oneds{d});
-            for k = 2:d
+            obj.res_x{1} = sample_domain(obj.opt.kick_rank, obj.oneds{1});
+            for k = 2:obj.d
                 obj.res_x{k} = [sample_domain(obj.opt.kick_rank, obj.oneds{k}); obj.res_x{k-1}];
             end
         else
             % nested interpolation points for res
-            for k = d:-1:1
-                obj.res_x{k} = sample_x(1:obj.opt.kick_rank, k:d);
+            for k = obj.d:-1:1
+                obj.res_x{k} = sample_x(1:obj.opt.kick_rank, k:obj.d);
             end
         end
     end
@@ -121,13 +121,13 @@ end
 % reinitialise the residual blocks for AMEN
 if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_w)
     if obj.direction < 0 % direction has already been flipped
-        for k = 1:(d-1)
+        for k = 1:(obj.d-1)
             obj.res_w{k} = randn(obj.opt.kick_rank, size(obj.cores{k},3));
         end
-        obj.res_w{d} = randn(size(obj.cores{d},1), obj.opt.kick_rank);
+        obj.res_w{obj.d} = randn(size(obj.cores{obj.d},1), obj.opt.kick_rank);
     else
         obj.res_w{1} = randn(obj.opt.kick_rank, size(obj.cores{1},3));
-        for k = 2:d
+        for k = 2:obj.d
             obj.res_w{k} = randn(size(obj.cores{k},1), obj.opt.kick_rank);
         end
     end
@@ -136,12 +136,12 @@ end
 % start
 f_evals  = 0;
 als_iter = 0;
-rs = ones(1,d);
+rs = ones(1,obj.d);
 while true % run ALS
     if obj.direction > 0
-        ind = 1:(d-1);
+        ind = 1:(obj.d-1);
     else
-        ind = d:-1:2;
+        ind = obj.d:-1:2;
     end
     %
     switch obj.opt.tt_method
@@ -149,8 +149,8 @@ while true % run ALS
             % at the head, update the random enrichment set
             if size(sample_x, 2) < obj.opt.kick_rank
                 sample_x = [];
-                enrich  = zeros(d, obj.opt.kick_rank);
-                for k = 1:d
+                enrich  = zeros(obj.d, obj.opt.kick_rank);
+                for k = 1:obj.d
                     enrich(k,:) = sample_domain(obj.oneds{k}, obj.opt.kick_rank);
                 end
             else
@@ -158,7 +158,7 @@ while true % run ALS
                 sample_x(:,1:obj.opt.kick_rank) = [];
             end
             % start
-            errs = zeros(1,d);
+            errs = zeros(1,obj.d);
             for k = ind
                 if obj.direction > 0
                     if k == 1
@@ -168,7 +168,7 @@ while true % run ALS
                     end
                     % evaluate interpolant function at x_k nodes
                     [F, nf] = FTT.local_block(obj.opt.sqrt_flag, obj.oneds{k}, Jx_left, obj.interp_x{k+1}, func);
-                    [Fe,ne] = FTT.local_block(obj.opt.sqrt_flag, obj.oneds{k}, Jx_left, enrich(k+1:d,:),   func);
+                    [Fe,ne] = FTT.local_block(obj.opt.sqrt_flag, obj.oneds{k}, Jx_left, enrich(k+1:obj.d,:),   func);
                     % update relative error and increase counter
                     errs(k) = FTT.local_error(obj.cores{k}, F);
                     f_evals = f_evals + nf + ne;
@@ -179,7 +179,7 @@ while true % run ALS
                         obj.direction, obj.opt.int_method, obj.opt.local_tol, obj.opt.max_rank);
                     rs(k) = size(obj.cores{k}, 3);
                 else
-                    if k == d
+                    if k == obj.d
                         Jx_right = [];
                     else
                         Jx_right = obj.interp_x{k+1};
@@ -201,7 +201,7 @@ while true % run ALS
             end
         case {'amen'}
             % start
-            errs = zeros(1,d);
+            errs = zeros(1,obj.d);
             for k = ind
                 if obj.direction > 0
                     if k == 1
@@ -232,7 +232,7 @@ while true % run ALS
                         obj.direction, obj.opt.int_method, obj.opt.local_tol, obj.opt.max_rank, obj.opt.kick_rank);
                     rs(k) = size(obj.cores{k}, 3);
                 else
-                    if k == d
+                    if k == obj.d
                         Jx_right = [];
                         Jr_right = [];
                         Rw_right = 1;
@@ -250,7 +250,7 @@ while true % run ALS
                     f_evals = f_evals + nf + nr;
                     % different from left iteration, k + 1 is the previous index
                     % evaluate update function at x_k nodes
-                    if k < d
+                    if k < obj.d
                         [Fu,nu] = FTT.local_block(obj.opt.sqrt_flag, obj.oneds{k}, obj.res_x{k-1}, Jx_right, func);
                         f_evals = f_evals + nu;
                     else

@@ -14,6 +14,7 @@ classdef FTT
     %   res_x       - Interpolation coordinates for the residual.
     %   res_w       - Interpolation weights for the residual.
     %   n_evals     - Number of function evaluations in TT cross.
+    %   d           - dimension of the function / tensor
     %
     % FTT Methods:
     %   cross       - Run the TT cross, this is called by the constructor.
@@ -24,6 +25,7 @@ classdef FTT
     %   int         - Integrate the entire FTT.
     %   int_block   - Integrate a block of FTT cores.
     %   size        - Size of the FTT.
+    %   rank        - Rank of the FTT.
     %
     %%%%%%%%%%%%%%%%%
     %
@@ -93,6 +95,8 @@ classdef FTT
         n_evals
         res_x
         res_w
+        d
+        ranks
     end
         
     methods (Static)
@@ -142,9 +146,12 @@ classdef FTT
         [d,rs,ns] = size(obj)
         % size of ftt
 
+        rs = rank(obj)
+        % rank of ftt
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        function obj = FTT(func, d, arg, varargin)
+        function obj = FTT(func, d, varargin)
             % Construct tensor train for a function mapping from R^d to R^m.
             %
             %   func - a function (R^d to R^m) that take inputs as a dxn
@@ -159,6 +166,7 @@ classdef FTT
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % parsing inputs
+            defaultArg       = Lagrange1(20, [0,1]);
             defaultOption    = FTToption();
             defaultSampleSet = [];
             defaultDebugSet  = [];
@@ -168,15 +176,16 @@ classdef FTT
             %
             addRequired(p,'func',@(x) isa(x, 'function_handle'));
             addRequired(p,'d',validScalarPosNum);
-            addRequired(p,'arg');
+            addOptional(p,'arg',defaultArg);
             addOptional(p,'option',defaultOption);
             %
             addParameter(p,'sample_x', defaultSampleSet);
             addParameter(p,'debug_x',  defaultDebugSet);
             %
             p.KeepUnmatched = false;
-            parse(p,func,d,arg,varargin{:});
+            parse(p,func,d,varargin{:});
             %
+            arg = p.Results.arg;
             obj.opt = p.Results.option;
             debug_x = p.Results.debug_x;
             sample_x = p.Results.sample_x;
@@ -184,6 +193,7 @@ classdef FTT
             if isa(arg, 'FTT')
                 obj = arg;
             else
+                obj.d = d;
                 obj.oneds = cell(d,1);
                 if isa(arg, 'cell')
                     for k = 1:d
@@ -192,22 +202,19 @@ classdef FTT
                         end
                         obj.oneds{k} = arg{k};
                     end
-                    obj.cores = [];
-                    obj.res_x = [];
-                    obj.res_w = [];
                 elseif isa(arg, 'oned')
                     for k = 1:d
                         obj.oneds{k} = arg;
                     end
-                    obj.cores = [];
-                    obj.res_x = [];
-                    obj.res_w = [];
                 else
                     error('wrong type of argument')
                 end
+                obj.cores = [];
+                obj.res_x = [];
+                obj.res_w = [];
             end
             % build ftt
-            obj = cross(obj, func, d, sample_x, debug_x);
+            obj = cross(obj, func, sample_x, debug_x);
         end
         
     end

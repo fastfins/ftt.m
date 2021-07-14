@@ -6,8 +6,7 @@ function fx = eval_block(obj, x, dir)
 %   dir - direction evlauation, >0: from left to right
 %                               <0: from right to left
 %   f   - function values at x, m x n
-%
-d   = length(obj.cores);
+
 k   = size(x, 1);
 nx  = size(x, 2);
 %
@@ -15,11 +14,11 @@ if dir > 0
     % start from the 1st dimension
     fx  = ones(nx,1);
     % all the intermediate dimensions, except the last dimension
-    for j = 1:min(k,d)
+    for j = 1:min(k,obj.d)
         nj  = size(obj.cores{j}, 2);
         rjm = size(obj.cores{j}, 1);
         %
-        if j < d || (size(obj.cores{j}, 3) > 1 && size(obj.cores{j}, 4) == 1)
+        if j < obj.d || (size(obj.cores{j}, 3) > 1 && size(obj.cores{j}, 4) == 1)
             tmp = reshape(permute(obj.cores{j}, [2,1,3]), nj, []);
         else
             % collapse the third dimension = 1
@@ -36,11 +35,11 @@ if dir > 0
 else
     % start from the last dimension
     xind = k:-1:1;
-    tind = d:-1:1;
+    tind = obj.d:-1:1;
     fx   = ones(1,nx);
     % all the intermediate dimensions, except the first dimension
     % need to walk through d-k+1 dimensions
-    for i = 1:min(k,d)
+    for i = 1:min(k,obj.d)
         j = tind(i);
         nj  = size(obj.cores{j}, 2);
         rj  = size(obj.cores{j}, 3);

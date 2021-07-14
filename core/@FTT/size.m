@@ -7,12 +7,10 @@ function [d,rs,ns] = size(obj)
 %   rs  - ranks, r(0) = 1 is not included
 %   ns  - number of collocation points for each dimension
 
-d   = length(obj.cores);
-rs  = ones(1,d);
+d   = obj.d;
+rs  = rank(obj);
 ns  = ones(1,d);
-for k = 1:d-1
-    rs(k) = size(obj.cores{k+1}, 1);
+for k = 1:d
     ns(k) = obj.oneds{k}.num_nodes;
 end
-ns(d) = obj.oneds{d}.num_nodes;
 end

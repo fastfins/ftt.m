@@ -68,4 +68,9 @@ end
 % delete marginalised blocks
 ftt.oneds(ind) = [];
 ftt.cores(ind) = [];
+% delete all residual blocks
+ftt.res_x = [];
+ftt.res_w = [];
+%
+ftt.d = d - length(ind);
 end
