@@ -1,6 +1,7 @@
 
 Updated on 07/07/2021. 
 
+* Load the folder 'core'. 
 * Type 'help oned' for selecting one dimensional basis.
 * Type 'help FTT' for examples of building FTT. 
     * An additional example can be found in 'test_cases/test1_ftt_basis.m'
