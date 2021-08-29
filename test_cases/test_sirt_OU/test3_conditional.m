@@ -80,6 +80,15 @@ for i = 1:4
         %
         if irts{i,j}.int_dir ~= 1, irts{i,j} = marginalise(irts{i,j}, 1); end
         tic;[y,f] = eval_cirt(irts{i,j}, x, zy);toc
+        tic;
+        zx = eval_rt (irts{i,j}, x);
+        fx = eval_pdf(irts{i,j}, x);
+        [r,fxy] = eval_irt(irts{i,j}, [repmat(zx, 1, size(zy,2)); zy]);
+        y2 = r(indy,:);
+        f2 = fxy./fx;
+        toc
+        disp([norm(y2-y, 'fro'), norm(f2-f)])
+        
         %
         figure;
         subplot(2,3,1);plot(abs(func2(repmat(x,1,size(zy,2)), y, 1) - f)); title('actual function value vs fft')

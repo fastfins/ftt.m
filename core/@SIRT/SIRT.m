@@ -135,6 +135,29 @@ classdef SIRT < FTT
     %   figure; plot(Cy - cov(Y'))
     %   figure; plot(my - mean(Y,2))
     %
+    % % Case 3.3: Alternative way for generating X_{>=k} | x_{<k} 
+    % %     - need to run the marginal function with int_dir=1 (default)
+    %   indx = 1:8; % index of variables that will be conditioned on
+    %   indy = 9:d; % index of conditional variables 
+    %   X = B\randn(d,1);
+    %   X = X(indx);
+    %   % conditional mean
+    %   my = C(indy,indx)*(C(indx,indx)\X); 
+    %   % conditional covariance
+    %   Cy = C(indy,indy) - C(indy,indx)*(C(indx,indx)\C(indx,indy));
+    %   Zy = Z(indy,:);
+    %   if irt.int_dir ~= 1, irt = marginalise(irt, 1); end
+    %   Zx = eval_rt (irt, X);
+    %   fx = eval_pdf(irt, X);
+    %   [R,fxy] = eval_irt(irt, [repmat(Zx, 1, size(Zy,2)); Zy]);
+    %   Y = R(indy,:);
+    %   f = fxy./fx;
+    %
+    %   fe = joint([repmat(X,1,size(Zy,2)); Y])/marginal(X,indx)*marginal_z(indx)/z;
+    %   figure; plot(fe , f, '.');
+    %   figure; plot(Cy - cov(Y'))
+    %   figure; plot(my - mean(Y,2))
+    %
     %%%%%%%%%%%%%%%%%
     %
     % see also ONED, ONEDCDF, FTTOPTION, and FTT
