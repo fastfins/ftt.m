@@ -1,133 +1,85 @@
-function obj = build(obj, func, d, beta, pol, opt)
+function obj = build(obj, func)
 
-% this can be QMC sets from i.i.d. Gaussian
+% reference samples
+%{
 if obj.qmc_flag
-    l = ceil(log2(opts.nsamples));
+    l = ceil(log2(obj.nsamples));
     opts.nsamples = 2^l;
-    zs=qmcnodes(opts.np,l); 
-    samples = erfinv(2*zs-1)*sqrt(2);
+    zs = qmcnodes(opts.np,l);
 else
-    samples = randn(opts.np, opts.nsamples);
+    zs = rand(obj.d, obj.nsamples);
 end
+%}
+
+zs = rand(obj.d, obj.nsamples);
+samples = eval_icdf(obj.diag, zs);
 
 beta = 0;
-irtprev = 4;
-for iter = 1:opts.max_iter
-    beta_p = beta;
-    disp(['iteration ' num2str(iter)])
-    
-    [us,lfs,Jr_uv] = eval_dirt(liss, irts, iter-1, samples, grids);
-    
-    mllkds  = zeros(1, opts.nsamples);
-    gmllkds = zeros(opts.np, opts.nsamples);
-    for i = 1:opts.nsamples
-        [~,mllkds(i),~,gmllkds(:,i)] = opts.mlpost(us(:,i));
-    end
+obj.n_layers = 0;
+while obj.n_layers < obj.max_iter
     %
-    data_sets{iter,1} = mllkds;
-    data_sets{iter,2} = gmllkds;
-    
-    %
-    % adapt on the temperature, increase temperature to 1
-    beta = max(beta_p,opts.min_temp);
-    % compute ess over sample size
-    ess = ess_ratio(beta_p, beta, mllkds);
-    while ess > opts.ess_tol
-        beta = beta*opts.beta_fac;
-        ess = ess_ratio(beta_p, beta, mllkds);
-    end
-    beta = min(1, beta);
-    ess = ess_ratio(beta_p, beta, mllkds);
-    betas(iter) = beta;
-    % log of normalising const between two adjacent layers
-    log_weight = (beta_p - beta)*mllkds;
-    ref_weight = max(log_weight);
-    %
-    disp(['    temperature ' num2str(beta) ', ess ' num2str(ess)])
-        
-    if iter > 1
-        if opts.debug
-            lwd = -beta_p*mllkds-lfs;
-            rwd = max(lwd);
-            ess2 = ( sum(exp(lwd-rwd)).^2/sum(exp(2*(lwd-rwd))) ) / opts.nsamples;
-            %
-            disp(['N/ess ' num2str(1/ess2) ', ess ' num2str(ess2)])
+    % evaluate the map and the target function
+    [x,logfx] = eval_irt(obj, samples);
+    [mllkds, mlps] = func(x);
+    % determine the new temperature
+    if obj.adapt_tempering
+        beta_p = beta;
+        beta = max(beta_p,obj.min_temperature);
+        switch obj.method
+            case {'Aratio'}
+                % compute ess over sample size
+                ess = ess_ratio((beta_p-beta)*mllkds);
+                while ess > ess_tol
+                    beta = beta*obj.tempering_factor;
+                    ess = ess_ratio((beta_p-beta)*mllkds);
+                end
+                beta = min(1, beta);
+                ess = ess_ratio((beta_p-beta)*mllkds);
+            case {'Eratio'}
+                % compute ess over sample size
+                ess = ess_ratio(-beta*mllkds-mlps-logfx);
+                while ess > ess_tol
+                    beta = beta*obj.tempering_factor;
+                    ess = ess_ratio(-beta*mllkds-mlps-logfx);
+                end
+                beta = min(1, beta);
+                ess = ess_ratio(-beta*mllkds-mlps-logfx);
         end
-        log_weight = -beta*mllkds-lfs;
-        ref_weight = max(log_weight);
-    end
-    
-    % build LIS
-    g = (beta_p - beta)*gmllkds;
-    g = backtracking(liss, iter-1, Jr_uv, g);
-    weights = exp(log_weight-ref_weight)/sum(exp(log_weight-ref_weight));
-    [V,S,~] = svd( g.*sqrt(weights(:)'), 'econ' );
-    s = diag(S);
-    figure(1);
-    semilogy(s);
-    drawnow;
-    cs = cumsum(s.^2);
-    err = 0.5*sqrt(cs(end)-cs);
-    r = max(sum(err>opts.tru_tol), opts.min_rank);
-    r = opts.d;
-    liss{iter}.V = V(:,1:r);
-    liss{iter}.s = s;
-    liss{iter}.r = r;
-    %liss{k}.basis = liss{k}.V.*liss{k}.d(:)';
-    %liss{k}.shift = 0;
-    
-    disp(['    LIS dimension ' num2str(r)])
-    
-    % Ratio function for current iteration
-    f_sub = @(vr) ratio_fun(opts.mlpost, beta_p, beta, liss, irts, iter, liss{iter}.V, vr', grids)';
-        
-    if (strcmpi(opts.method, 'ftt'))
-        % resampling
-        ind = datasample(1:opts.nsamples, opts.nsamples, 'weights', weights);
-        v_sub = liss{iter}.V'*samples(:,ind);
-        % Build FTT
-        ftts{iter} = build_ftt(f_sub, r, [], opt, 'sample_x', v_sub);
-        % build IRT
-        irts{iter} = build_irt(ftts{iter});
+        obj.temperatures(obj.n_layers) = beta;
     else
-        % build TT
-        if (iter==1)
-            grids{iter} = repmat({x0}, r, 1);
-        else
-            grids{iter} = repmat({xi}, r, 1);
-        end
-        ttgrids = tt_meshgrid_vert(cellfun(@(x)tt_tensor(x), grids{iter}, 'uni', 0));
-        irts{iter} = amen_cross_s(ttgrids, f_sub, 0, 'nswp', 1, 'kickrank', 0, 'y0', irtprev);
-        irtprev = irts{iter};
-        figure(2);
-        if (iter==1)
-            surf(x0, x0, full(dot(tt_ones(numel(x0), r-2), irts{iter}, 3, r), numel(x0)*[1 1]), 'EdgeColor', 'none')
-        else
-            surf(xi, xi, full(dot(tt_ones(numel(xi), r-2), irts{iter}, 3, r), numel(xi)*[1 1]), 'EdgeColor', 'none')
-        end
-        shading interp;
-        drawnow;
-        irts{iter} = core2cell(irts{iter});
+        beta_p = beta;
+        beta = obj.temperatures(obj.n_layers);
     end
+    
+    % squared Hellinger error between logfx and (-beta_p*mllkds-mlps)
+    if obj.n_layers > 1
+        [~,dh2,~] = f_divergence(logfx, -beta_p*mllkds-mlps);
+    else
+        dh2 = 1;
+    end
+    %
+    fprintf('iteration=%2d, Hellinger2 error=%3.3e, ess ratio=%3.3e cum#fevals=%3.3e\n', ...
+        obj.n_layers-1, dh2, ess, f_eval);
+    
+    log_weights = -beta*mllkds-mlps-logfx;
+    log_weights = log_weights - max(log_weights);
+    %
+    ind = datasample(1:obj.nsamples, obj.nsamples, 'weights', exp(log_weights));
+    %
+    % Ratio function for current iteration
+    newf = @(z) ratio_fun(obj, func, beta_p, beta, z);
+    %
+    if obj.debug_flag
+        obj.irts{obj.n_layers+1} =  SIRT(newf, d, pol, opt, 'debug_x', dx, 'sample_x', samples(:,ind));
+    else
+        obj.irts{obj.n_layers+1} =  SIRT(newf, d, pol, opt, 'sample_x', samples(:,ind));
+    end
+    obj.n_layers = obj.n_layers + 1;
     
     % stop
     if abs(beta - 1) < 1E-10
         break;
     end
 end
-
-if opts.debug && iter > 1
-    [us,lfs] = eval_dirt(liss, irts , iter, samples, grids);
-    mllkds = zeros(1, opts.nsamples);
-    for i = 1:opts.nsamples
-        [~,mllkds(i)] = opts.mlpost(us(:,i));
-    end
-    lwd = -mllkds-lfs;
-    rwd = max(lwd);
-    ess2 = ( sum(exp(lwd-rwd)).^2/sum(exp(2*(lwd-rwd))) ) / opts.nsamples;
-    %
-    disp(['N/ess ' num2str(1/ess2) ', ess ' num2str(ess2)])
-end
-
 
 end

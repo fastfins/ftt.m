@@ -5,7 +5,7 @@ function J = eval_rt_jac(obj, r, z)
 %
 %   X - random variable drawn form the pdf defined by SIRT
 %   Z - uniform random variables, d x n
-%   J - Jacobianx, (d x d) x n, each d x d block is the Jabocian for X(:,j)
+%   J - Jacobian, (d x d) x n, each d x d block is the Jabocian for X(:,j)
 
 d = length(obj.cores);
 n = size(r,2);

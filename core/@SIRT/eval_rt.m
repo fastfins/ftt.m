@@ -3,8 +3,8 @@ function z = eval_rt(obj, r)
 % random variable and X is the target random variable. 
 %   Z = EVAL_RT(irt, X)
 %
-%   X - random variable drawn form the pdf defined by SIRT
 %   Z - uniform random variables, d x n
+%   X - random variable drawn form the pdf defined by SIRT
 
 
 d = length(obj.cores);
