@@ -232,7 +232,7 @@ classdef spectralCDF < onedCDF
                 I3 = ~I1 & ~I2;
                 a  = I1.*c + I2.*a + I3.*a;
                 b  = I1.*b + I2.*c + I3.*b;
-                c = regula_falsi(obj, data, ei, mask, rhs, a, b);
+                c = regula_falsi(obj, coef, rhs, a, b);
             end
         end
         
