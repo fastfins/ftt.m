@@ -17,8 +17,6 @@ classdef DIRT
     %   n_samples   -
     %
     % DIRT Methods:
-    %   marginalise - Marginalise the DIRT.
-    %   eval_pdf    - Evaluate the normalised (marginal) pdf.
     %   eval_irt    - X = R^{-1}(Z), where X is the target random variable,
     %                 R is the Rosenblatt transport, and Z is the uniform
     %                 random variable.
@@ -28,6 +26,8 @@ classdef DIRT
     %               * This function cannot handle marginal random variables.
     %   eval_rt     - Z = R(X), where Z is uniform and X is target.
     %               * This function can map marginal random variables.
+    %   backtrack   - Compute the gradient of f(T(z)) w.r.t. z
+    %   ratio_fun   - The ratio function used in DIRT construction
     %
     %%%%%%%%%%%%%%%%%
     %
@@ -38,16 +38,30 @@ classdef DIRT
     % see also SIRT
     
     properties
-        int_dir
         diag
         z
         irts
         method
+        %
+        d
+        pol
+        sirt_opt
+        %
+        n_layers
         max_layers
+        %
+        n_samples
+        n_debugs
+        %
+        adapt_beta
+        beta_factor
+        min_beta
+        ess_tol
+        betas
     end
     
     methods (Static)
-        gz = backtracking(Juz, Jux, gx)
+        gz = backtrack(Juz, Jux, gx)
         % Evaluate the gradient of f(T(z)), where T is a DIRT
     end
     
@@ -61,17 +75,10 @@ classdef DIRT
         z = eval_rt(obj, r)
         % Evaluate deep RT z = T(r), where z is reference and r is target r.v.
         
-        % J = eval_rt_jac(firt, r, z)
-        % Evaluate the jacobian of the squared RT z = T(r), where z is
-        % uniform and r is target r.v.
-        
-        fx = eval_pdf(obj, x)
-        % Evaluate the DIRT pdf of x
-        
         obj = build(obj, func)
         % building DIRT using given temperatures
                 
-        f = ratio_fun(obj, func, beta_p, beta, v)
+        f = ratio_fun(obj, func, beta_p, beta, z)
         % ratio function for building DIRT
         
         function obj = DIRT(func, d, beta, varargin)
@@ -82,8 +89,7 @@ classdef DIRT
             defaultOption   = FTToption();
             defaultMethod   = 'Aratio';
             expectedMethod  = {'Eratio','Aratio'};
-            defaultDiag     = 'uniform';
-            expectedDiag    = {'uniform','normal'};
+            defaultDiag     = uniformMap();
             defaultMLayers  = 50;
             %defaultQMCFlag  = false;
             
@@ -97,8 +103,7 @@ classdef DIRT
             addOptional(p, 'option',defaultOption);
             addParameter(p,'method',defaultMethod, ...
                 @(x) any(validatestring(x,expectedMethod)));
-            addParameter(p,'diag',  defaultDiag, ...
-                @(x) any(validatestring(x,expectedDiag)));
+            addParameter(p,'diag',  defaultDiag);
             addParameter(p,'max_layers',defaultMLayers, validScalarPosNum);
             %addParameter(p,'qmc_flag',  defaultQMCFlag, @(x) islogical(x) && isscalar(x));
             %

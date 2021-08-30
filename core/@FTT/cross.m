@@ -132,7 +132,14 @@ if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_w)
         end
     end
 end
-% get dimensions of each TT block
+% 
+if isempty(debug_x)
+    fprintf('\n\n  >> ALS_iter\t max_local_err\t mean_local_err\t max_rank\t cum#fevals\n');
+else
+    fprintf('\n\n  >> ALS_iter\t max_local_err\t mean_local_err\t max_rank\t max_debug_err\t mean_debug_err\t cum#fevals\n');
+end
+
+    
 % start
 f_evals  = 0;
 als_iter = 0;
@@ -273,17 +280,17 @@ while true % run ALS
         debug_errs(2) = mean(abs(exact(:) - approx(:))) / max(abs(exact(:)));
     end
     % Print the information of each TT iteration
-    fprintf('als=%2d, max_local_error=%3.3e, mean_local_error=%3.3e, max_rank=%d, cum#fevals=%3.3e\n', ...
-        als_iter, max(errs(ind)), mean(errs(ind)), max(rs), f_evals);
-    if ~isempty(debug_errs)
-        fprintf('als=%2d, max_debug_error=%3.3e, mean_debug_error=%3.3e\n', ...
-            als_iter, debug_errs(1), debug_errs(2));
+    if isempty(debug_errs)
+        fprintf('  >> %4i\t %10.5E\t %10.5E\t %10.5E\t %10i\n', ...
+            [als_iter, max(errs(ind)), mean(errs(ind)), max(rs), f_evals]);
+    else
+        fprintf('  >> %4i\t %10.5E\t %10.5E\t %10.5E\t %10.5E\t %10.5E\t %10i\n', ...
+            [als_iter, max(errs(ind)), mean(errs(ind)), max(rs), debug_errs(1), debug_errs(2), f_evals]);
     end
-    fprintf('\n');
     %
     if als_iter == obj.opt.max_als || max(errs(ind)) < obj.opt.als_tol
-        disp('ALS completed, TT ranks')
-        disp(rs)
+        disp('  >> ALS completed, TT ranks')
+        disp(['  >> ' num2str(rs)])
         break;
     else
         % flip direction

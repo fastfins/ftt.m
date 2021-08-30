@@ -12,7 +12,7 @@ logf = zeros(1, size(x,2));
 for l = 1:obj.n_layers
     % ref density, skip the first one
     if l > 1
-        logfz = eval_log_pdf(obj.diag, z);
+        logfz = log_pdf(obj.diag, z);
     else
         logfz = 0;
     end

@@ -21,7 +21,7 @@ if nargout <= 2
         [x, ft] = eval_irt(obj.irts{l}, u);
         % evaluate the denominator of the Jacobian
         if l > 1
-            logfx = eval_log_pdf(obj.diag, x);
+            logfx = log_pdf(obj.diag, x);
         else
             logfx = 0;
         end
@@ -40,7 +40,7 @@ else
         Jux{l} = eval_rt_jac(obj.irts{l}, x, u);
         % evaluate the denominator of the Jacobian
         if l > 1
-            logfx = eval_log_pdf(obj.diag, x);
+            logfx = log_pdf(obj.diag, x);
         else
             logfx = 0;
         end

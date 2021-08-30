@@ -15,7 +15,7 @@ function f = ratio_fun(obj, func, beta_p, beta, z)
 [mllkds, mlps] = func(x);
 
 % compute the reference density at z
-logfz = eval_log_pdf(obj.diag, z);
+logfz = log_pdf(obj.diag, z);
             
 switch obj.method
     case {'Aratio'}

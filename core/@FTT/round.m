@@ -46,6 +46,6 @@ if strcmp (obj.opt.tt_method, 'amen')
     obj.res_w = [];
 end
 
-disp('rounded TT, ranks:')
-disp(rs)
+disp(' >> rounded TT, ranks:')
+disp(['  >> ' num2str(rs)])
 end

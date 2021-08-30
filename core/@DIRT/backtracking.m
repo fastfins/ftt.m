@@ -1,9 +1,9 @@
-function gz = backtracking(Juz, Jux, gx)
+function gz = backtrack(Juz, Jux, gx)
 % Given the deep Rosenblatt transport X = T(Z), where Z is the reference 
 % random variable and X is the target random variable. and the gradient of 
 % f(X), evaluate the gradient of f(T(Z)). 
 % 
-%   gz = BACKTRACKING(Juz, Jux, gx)
+%   gz = BACKTRACK(Juz, Jux, gx)
 %
 %   Juz - cell array of the Jacobian of the diagonal map, U = CDF(Z), at 
 %         each layer, dimension of each: d x n
