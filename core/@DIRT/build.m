@@ -1,4 +1,6 @@
-function obj = build(obj, func)
+function obj = build(obj, func, oned, sirt_opt)
+
+beta_factor = 1.2;
 
 % reference samples
 %{
@@ -16,13 +18,16 @@ zs = rand(obj.d, ns);
 samples = eval_icdf(obj.diag, zs);
 
 beta = 0;
-obj.f_eval = 0;
+obj.n_evals = 0;
 obj.n_layers = 0;
+obj.irts = cell(obj.max_layers, 1);
+obj.logz = 0;
 while obj.n_layers < obj.max_layers
     %
     % evaluate the map and the target function
     [x,logfx] = eval_irt(obj, samples);
     [mllkds, mlps] = func(x);
+    obj.n_eval = obj.n_eval + ns;
     % determine the new temperature
     if obj.adapt_beta
         beta_p = beta;
@@ -32,7 +37,7 @@ while obj.n_layers < obj.max_layers
                 % compute ess over sample size
                 ess = ess_ratio((beta_p-beta)*mllkds);
                 while ess > obj.ess_tol
-                    beta = beta*obj.beta_factor;
+                    beta = beta*beta_factor;
                     ess = ess_ratio((beta_p-beta)*mllkds);
                 end
                 beta = min(1, beta);
@@ -41,7 +46,7 @@ while obj.n_layers < obj.max_layers
                 % compute ess over sample size
                 ess = ess_ratio(-beta*mllkds-mlps-logfx);
                 while ess > obj.ess_tol
-                    beta = beta*obj.beta_factor;
+                    beta = beta*beta_factor;
                     ess = ess_ratio(-beta*mllkds-mlps-logfx);
                 end
                 beta = min(1, beta);
@@ -61,7 +66,7 @@ while obj.n_layers < obj.max_layers
     end
     %
     fprintf('\n\niteration=%2d, Hell2 err=%3.3e, cum#fevals=%3.3e, next beta=%3.3e, ess ratio=%3.3e \n', ...
-        obj.n_layers, dh2, f_eval, beta, ess);
+        obj.n_layers, dh2, obj.n_evals, beta, ess);
     
     log_weights = -beta*mllkds-mlps-logfx;
     log_weights = log_weights - max(log_weights);
@@ -74,11 +79,12 @@ while obj.n_layers < obj.max_layers
     if obj.n_debugs > 0
         ind1 = ind(1:obj.n_samples);
         ind2 = ind((1:obj.n_debugs)+obj.n_samples);
-        obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, obj.pol, obj.sirt_opt, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
+        obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oned, sirt_opt, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
     else
-        obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, obj.pol, obj.sirt_opt, 'sample_x', samples(:,ind));
+        obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oned, sirt_opt, 'sample_x', samples(:,ind));
     end
-    obj.f_eval = obj.f_eval + obj.irts{obj.n_layers+1}.n_evals;
+    obj.logz = obj.logz + log(obj.irts{obj.n_layers+1}.z);
+    obj.n_evals = obj.n_evals + obj.irts{obj.n_layers+1}.n_evals;
     obj.n_layers = obj.n_layers + 1;
     
     % stop
@@ -96,5 +102,5 @@ end
 
 %
 fprintf('\n\niteration=%2d, Hell2 error=%3.3e, cum#fevals=%3.3e\n', ...
-    obj.n_layers, dh2, f_eval);
+    obj.n_layers, dh2, obj.n_evals);
 end

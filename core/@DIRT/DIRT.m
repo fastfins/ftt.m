@@ -1,20 +1,23 @@
 classdef DIRT
     % DIRT class
     %
-    % DIRT Properties:
-    %   int_dir     - The direction for marginalising the FTT.
-    %                 >0: marginalise from x_d to x_1
-    %                 <0: marginalise from x_1 to x_d
+    % DIRT Properties:    
+    %   diag        - Type of the diagonal transformation in DIRT
+    %   logz        - Log normalising constant
+    %   irts        - A cell array of IRTs
     %   method      - Type of DIRT construction, choose either 'Eratio'
     %                 or 'Aratio', default is 'Aratio'
-    %   diag        - Type of the diagonal transformation in DIRT
-    %   z           - Normalising constant
-    %   irts        - A cell array of IRTs
-    %   betas       - A vector of temperatures used in DIRT construction
+    %   d           - dimension of the inpuit parameters
     %   n_layers    - Number of layers
     %   max_layers  - The maximum number of layers
-    %   qmc_flag    - A flag to determine if use QMC samples
-    %   n_samples   -
+    %   n_samples   - Number of samples used in the temperature adaptation 
+    %               - and in the FTT construction
+    %   n_debugs    - Number of debug samples
+    %   adapt_beta  - A flag indicating if adaptive temperature is used
+    %   min_beta    - Minimum temperature
+    %   ess_tol     - Tolerance for increasing the temperature
+    %   betas       - List of temperatures
+    %   n_evals     - Number of function evaluations in TT cross.
     %
     % DIRT Methods:
     %   eval_irt    - X = R^{-1}(Z), where X is the target random variable,
@@ -39,13 +42,11 @@ classdef DIRT
     
     properties
         diag
-        z
+        logz
         irts
         method
         %
         d
-        pol
-        sirt_opt
         %
         n_layers
         max_layers
@@ -54,10 +55,11 @@ classdef DIRT
         n_debugs
         %
         adapt_beta
-        beta_factor
         min_beta
         ess_tol
         betas
+        %
+        n_evals
     end
     
     methods (Static)
@@ -80,7 +82,7 @@ classdef DIRT
                 
         f = ratio_fun(obj, func, beta_p, beta, z)
         % ratio function for building DIRT
-        
+               
         function obj = DIRT(func, d, beta, varargin)
             % Call FTT constructor to build the FTT and setup data
             % structures for SIRT. Need to run marginalise after this.
@@ -92,6 +94,11 @@ classdef DIRT
             defaultDiag     = uniformMap();
             defaultMLayers  = 50;
             %defaultQMCFlag  = false;
+            defaultNSamples = 1E3;
+            defaultNDebugs  = 1E3;
+            defaultMinBeta  = 1E-6;
+            defaultESSTol   = 0.2;
+            defaultBetas    = [];
             
             p = inputParser;
             validScalarPosNum = @(x) isnumeric(x) && isscalar(x) && all(x > 0);
@@ -106,18 +113,39 @@ classdef DIRT
             addParameter(p,'diag',  defaultDiag);
             addParameter(p,'max_layers',defaultMLayers, validScalarPosNum);
             %addParameter(p,'qmc_flag',  defaultQMCFlag, @(x) islogical(x) && isscalar(x));
+            addParameter(p,'n_samples', defaultNSamples,validScalarPosNum);
+            addParameter(p,'n_debugs',  defaultNDebugs, validScalarPosNum);
+            addParameter(p,'min_beta',  defaultMinBeta, validScalarPosNum);
+            addParameter(p,'ess_tol',   defaultESSTol,  validScalarPosNum);
+            addParameter(p,'betas', defaultBetas);
             %
             p.KeepUnmatched = false;
             parse(p,func,d,beta,varargin{:});
             %
-            pol = p.Results.poly;
-            opt = p.Results.option;
+            oned = p.Results.poly;
+            sirt_opt = p.Results.option;
+            obj.d = d;
             obj.method = p.Results.method;
             obj.diag = p.Results.diag;
             obj.max_layers = p.Results.max_layers;
             %obj.qmc_flag = p.Results.qmc_flag;
+            obj.n_samples = p.Results.n_samples;
+            obj.n_debugs = p.Results.n_debugs;
             %
-            obj = build(obj, func, d, beta, pol, opt);
+            obj.min_beta = p.Results.min_beta;
+            obj.ess_tol = p.Results.ess_tol;
+            %
+            betas = p.Results.betas;
+            if isempty(betas)
+                obj.adapt_beta = true;
+                obj.betas = zeros(obj.max_layers, 1);
+            else
+                obj.adapt_beta = false;
+                obj.betas = sort(betas, 'ascend');
+                obj.max_layers = max(obj.max_layers, length(obj.betas));
+            end
+            %
+            obj = build(obj, func, oned, sirt_opt);
         end
     end
     
