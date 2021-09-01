@@ -10,6 +10,10 @@ classdef diagonalMap
     %
     % See also uniformMap and GaussMap
     
+    properties
+        domain
+    end
+    
     methods
         u = eval_cdf(obj, z)
         % Map from reference to uniform
@@ -19,6 +23,14 @@ classdef diagonalMap
         
         logf = log_pdf(obj, z)
         % Return the log of the reference pdf
+        
+        function obj = diagonalMap(domain)
+            obj.domain  = domain;
+        end
+        
+        function y = get_domain(obj)
+            y = obj.domain;
+        end
     end
     
 end

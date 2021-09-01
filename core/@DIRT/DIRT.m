@@ -41,12 +41,12 @@ classdef DIRT
     % see also SIRT
     
     properties
-        diag
         logz
         irts
         method
         %
         d
+        diag
         %
         n_layers
         max_layers
@@ -68,30 +68,30 @@ classdef DIRT
     end
     
     methods
-        [r,f] = eval_irt(obj, z)
+        [r,f] = eval_irt(obj, z, k)
         % Evaluate DIRT r = T(z), where z follows some general reference
         
         [r,f] = eval_cirt(obj, x, z)
         % Evaluate the conditional DIRT
         
-        z = eval_rt(obj, r)
+        [z, logz] = eval_rt(obj, r, k)
         % Evaluate deep RT z = T(r), where z is reference and r is target r.v.
         
-        obj = build(obj, func)
+        logz = log_pdf(obj, r, k)
+        
+        obj = build(obj, func, oneds, sirt_opt)
         % building DIRT using given temperatures
                 
-        f = ratio_fun(obj, func, beta_p, beta, z)
+        f = ratio_fun(obj, func, k, z, sqrt_flag)
         % ratio function for building DIRT
                
-        function obj = DIRT(func, d, beta, varargin)
+        function obj = DIRT(func, d, oneds, diag, varargin)
             % Call FTT constructor to build the FTT and setup data
             % structures for SIRT. Need to run marginalise after this.
             % parsing inputs
-            defaultPoly     = Lagrange1(20, [0,1]);
             defaultOption   = FTToption();
             defaultMethod   = 'Aratio';
             expectedMethod  = {'Eratio','Aratio'};
-            defaultDiag     = uniformMap();
             defaultMLayers  = 50;
             %defaultQMCFlag  = false;
             defaultNSamples = 1E3;
@@ -105,12 +105,12 @@ classdef DIRT
             %
             addRequired(p, 'func',  @(x) isa(x, 'function_handle'));
             addRequired(p, 'd',     validScalarPosNum);
-            addRequired(p, 'beta',  @(x) isnumeric(x) && (x > 0));
-            addOptional(p, 'poly',  defaultPoly);
+            addRequired(p, 'oneds');
+            addRequired(p, 'diag');
+            %
             addOptional(p, 'option',defaultOption);
             addParameter(p,'method',defaultMethod, ...
                 @(x) any(validatestring(x,expectedMethod)));
-            addParameter(p,'diag',  defaultDiag);
             addParameter(p,'max_layers',defaultMLayers, validScalarPosNum);
             %addParameter(p,'qmc_flag',  defaultQMCFlag, @(x) islogical(x) && isscalar(x));
             addParameter(p,'n_samples', defaultNSamples,validScalarPosNum);
@@ -120,13 +120,13 @@ classdef DIRT
             addParameter(p,'betas', defaultBetas);
             %
             p.KeepUnmatched = false;
-            parse(p,func,d,beta,varargin{:});
+            parse(p,func,d, oneds, diag, varargin{:});
             %
-            oned = p.Results.poly;
             sirt_opt = p.Results.option;
             obj.d = d;
+            obj.diag = diag;
             obj.method = p.Results.method;
-            obj.diag = p.Results.diag;
+            obj.diag = diag;
             obj.max_layers = p.Results.max_layers;
             %obj.qmc_flag = p.Results.qmc_flag;
             obj.n_samples = p.Results.n_samples;
@@ -145,7 +145,7 @@ classdef DIRT
                 obj.max_layers = max(obj.max_layers, length(obj.betas));
             end
             %
-            obj = build(obj, func, oned, sirt_opt);
+            obj = build(obj, func, oneds, sirt_opt);
         end
     end
     

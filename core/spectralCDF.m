@@ -90,7 +90,23 @@ classdef spectralCDF < onedCDF
                 tmp = eval_int(obj, coef, r);
                 z = reshape(tmp, size(r)) - reshape(base, size(r));
             end
-            z = reshape(z(:)./norm(:), size(r));
+            %z = reshape(z(:)./norm(:), size(r));
+            %
+            norm = reshape(norm, size(z));
+            ind1 = norm > 1E-12;
+            ind2 = ~ind1;
+            z(ind1) = z(ind1)./norm(ind1);
+            %
+            jnd1 = z(ind2) < 1E-12; 
+            jnd2 = ~jnd1;
+            %
+            z(ind2(jnd1)) = 0;
+            z(ind2(jnd2)) = 1;
+            %
+            z = reshape(z, size(r));
+            %
+            z(z>=1) = 1;
+            z(z<=0) = 0;
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

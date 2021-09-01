@@ -1,4 +1,4 @@
-function obj = build(obj, func, oned, sirt_opt)
+function obj = build(obj, func, oneds, sirt_opt)
 
 beta_factor = 1.2;
 
@@ -13,7 +13,7 @@ else
 end
 %}
 
-ns = obj.n_samples+n_debugs;
+ns = obj.n_samples+obj.n_debugs;
 zs = rand(obj.d, ns);
 samples = eval_icdf(obj.diag, zs);
 
@@ -22,12 +22,13 @@ obj.n_evals = 0;
 obj.n_layers = 0;
 obj.irts = cell(obj.max_layers, 1);
 obj.logz = 0;
+poly_counter = 1;
 while obj.n_layers < obj.max_layers
     %
     % evaluate the map and the target function
     [x,logfx] = eval_irt(obj, samples);
     [mllkds, mlps] = func(x);
-    obj.n_eval = obj.n_eval + ns;
+    obj.n_evals = obj.n_evals + ns;
     % determine the new temperature
     if obj.adapt_beta
         beta_p = beta;
@@ -56,6 +57,7 @@ while obj.n_layers < obj.max_layers
     else
         beta_p = beta;
         beta = obj.betas(obj.n_layers+1);
+        ess = ess_ratio((beta_p-beta)*mllkds);
     end
     
     % squared Hellinger error between logfx and (-beta_p*mllkds-mlps)
@@ -65,8 +67,8 @@ while obj.n_layers < obj.max_layers
         dh2 = 1;
     end
     %
-    fprintf('\n\niteration=%2d, Hell2 err=%3.3e, cum#fevals=%3.3e, next beta=%3.3e, ess ratio=%3.3e \n', ...
-        obj.n_layers, dh2, obj.n_evals, beta, ess);
+    fprintf('\n\niteration=%2d, Hell err=%3.3e, cum#fevals=%3.3e, next beta=%3.3e, ess ratio=%3.3e \n', ...
+        obj.n_layers, sqrt(dh2), obj.n_evals, beta, ess);
     
     log_weights = -beta*mllkds-mlps-logfx;
     log_weights = log_weights - max(log_weights);
@@ -74,18 +76,25 @@ while obj.n_layers < obj.max_layers
     ind = datasample(1:ns, ns, 'weights', exp(log_weights));
     %
     % Ratio function for current iteration
-    newf = @(z) ratio_fun(obj, func, beta_p, beta, z);
+    % if FTT does not use sqrt_flag, then we should compute sqrt of the
+    % ratio function here
+    newf = @(z) ratio_fun(obj, func, obj.n_layers+1, z, ~sirt_opt.sqrt_flag);
     %
     if obj.n_debugs > 0
         ind1 = ind(1:obj.n_samples);
         ind2 = ind((1:obj.n_debugs)+obj.n_samples);
-        obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oned, sirt_opt, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
+        obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
     else
-        obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oned, sirt_opt, 'sample_x', samples(:,ind));
+        obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, 'sample_x', samples(:,ind));
     end
     obj.logz = obj.logz + log(obj.irts{obj.n_layers+1}.z);
     obj.n_evals = obj.n_evals + obj.irts{obj.n_layers+1}.n_evals;
     obj.n_layers = obj.n_layers + 1;
+    if poly_counter < length(oneds)
+        poly_counter = poly_counter + 1;
+    else
+        poly_counter = length(oneds);
+    end
     
     % stop
     if abs(beta - 1) < 1E-10
@@ -101,6 +110,6 @@ end
 [~,dh2,~] = f_divergence(logfx, -mllkds-mlps);
 
 %
-fprintf('\n\niteration=%2d, Hell2 error=%3.3e, cum#fevals=%3.3e\n', ...
-    obj.n_layers, dh2, obj.n_evals);
+fprintf('\n\niteration=%2d, Hell error=%3.3e, cum#fevals=%3.3e\n', ...
+    obj.n_layers, sqrt(dh2), obj.n_evals);
 end

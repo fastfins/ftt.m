@@ -1,4 +1,4 @@
-function f = ratio_fun(obj, func, beta_p, beta, z)
+function f = ratio_fun(obj, func, k, z, sqrt_flag)
 % Evaluate the ratio function during the DIRT construction
 %   f = RATIO_FUN(dirt, func, tp, t, z)
 %
@@ -16,12 +16,25 @@ function f = ratio_fun(obj, func, beta_p, beta, z)
 
 % compute the reference density at z
 logfz = log_pdf(obj.diag, z);
-            
-switch obj.method
-    case {'Aratio'}
-        f =  exp( (beta_p - beta)*mllkds - mlps + logfz);
-    case {'Eratio'}
-        f =  exp( - beta*mllkds - mlps - logft + logfz);
+
+if k > 1
+    beta_p = obj.betas(k-1);
+    beta = obj.betas(k);
+    switch obj.method
+        case {'Aratio'}
+            logf =  (beta_p - beta)*mllkds + logfz;
+        case {'Eratio'}
+            logf =  - beta*mllkds - mlps - logft + logfz;
+    end
+else
+    beta = obj.betas(k);
+    logf = - beta*mllkds - mlps;
+end
+
+if sqrt_flag
+    f = exp(0.5*logf);
+else
+    f = exp(logf);
 end
 
 end

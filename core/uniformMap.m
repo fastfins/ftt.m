@@ -12,6 +12,10 @@ classdef uniformMap < diagonalMap
         function logf = log_pdf(obj, z)
             logf = zeros(1, size(z,2)); 
         end
+        
+        function obj = uniformMap()
+            obj@diagonalMap([0,1]);
+        end
     end
     
 end

@@ -48,6 +48,7 @@ else % from right to left
         jj  = reshape(repmat(1:n, rk, 1), [], 1);
         B   = sparse(ii, jj, frg(:), rk*n, n);
         frg = T2'*B;
+        %frg(isnan(frg)) = 0;
     end
 end
 

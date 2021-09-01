@@ -51,6 +51,7 @@ classdef piecewiseCDF < onedCDF
             mask1 = ei==0;
             if sum(mask1) > 0
                 tmp = ( r(mask1) - obj.domain(1) )./obj.gs ;
+                tmp(isnan(tmp)) = 0;
                 switch obj.bc
                     case{'Dirichlet'}
                         if data.size == 1
@@ -69,6 +70,7 @@ classdef piecewiseCDF < onedCDF
             mask2 = ei==(obj.num_elems+1);
             if sum(mask2) > 0
                 tmp = 1 - ( r(mask2) - obj.grid(end) )./obj.gs;
+                tmp(isnan(tmp)) = 0;
                 switch obj.bc
                     case{'Dirichlet'}
                         if data.size == 1
@@ -99,7 +101,21 @@ classdef piecewiseCDF < onedCDF
             end
             data = pdf2cdf(obj, pk);
             z = eval_int_lag(obj, data, r);
-            z = reshape(z(:)./data.norm(:), size(r));
+            %
+            ind1 = data.norm > 1E-12;
+            ind2 = ~ind1;
+            z(ind1) = z(ind1)./data.norm(ind1);
+            %
+            jnd1 = z(ind2) < 1E-12; 
+            jnd2 = ~jnd1;
+            %
+            z(ind2(jnd1)) = 0;
+            z(ind2(jnd2)) = 1;
+            %
+            z = reshape(z, size(r));
+            %
+            z(z>=1) = 1;
+            z(z<=0) = 0;
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

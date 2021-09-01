@@ -277,7 +277,7 @@ while true % run ALS
         exact   = func(debug_x);
         approx  = eval(obj, debug_x);
         debug_errs(1) = max(abs(exact(:) - approx(:)))  / max(abs(exact(:)));
-        debug_errs(2) = mean(abs(exact(:) - approx(:))) / max(abs(exact(:)));
+        debug_errs(2) = mean((exact(:) - approx(:)).^2).^0.5 / mean(exact(:).^2).^0.5;
     end
     % Print the information of each TT iteration
     if isempty(debug_errs)
