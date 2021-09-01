@@ -78,7 +78,7 @@ while obj.n_layers < obj.max_layers
     % Ratio function for current iteration
     % if FTT does not use sqrt_flag, then we should compute sqrt of the
     % ratio function here
-    newf = @(z) ratio_fun(obj, func, obj.n_layers+1, z, ~sirt_opt.sqrt_flag);
+    newf = @(z) ratio_fun(obj, func, z, ~sirt_opt.sqrt_flag);
     %
     if obj.n_debugs > 0
         ind1 = ind(1:obj.n_samples);
@@ -112,4 +112,5 @@ end
 %
 fprintf('\n\niteration=%2d, Hell error=%3.3e, cum#fevals=%3.3e\n', ...
     obj.n_layers, sqrt(dh2), obj.n_evals);
+%
 end

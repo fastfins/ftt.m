@@ -47,7 +47,7 @@ colormap default
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 diag = uniformMap();
-diag = GaussMap([-4, 4]);
+%diag = GaussMap([-4, 4]);
 
 poly1 = {Legendre(60, [-4, 4]), Legendre(40, diag.domain)};
 poly2 = {Lagrange1(60, [-4, 4], 'ghost_size', 1E-2, 'bc', 'Dirichlet'), Lagrange1(100, diag.domain, 'ghost_size', 1E-2, 'bc', 'Dirichlet')};

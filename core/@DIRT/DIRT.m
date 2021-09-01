@@ -34,7 +34,7 @@ classdef DIRT
     %
     %%%%%%%%%%%%%%%%%
     %
-    % Example:
+    % Example: see test_double_banana.m 
     %
     %%%%%%%%%%%%%%%%%
     %
@@ -82,7 +82,7 @@ classdef DIRT
         obj = build(obj, func, oneds, sirt_opt)
         % building DIRT using given temperatures
                 
-        f = ratio_fun(obj, func, k, z, sqrt_flag)
+        f = ratio_fun(obj, func, z, sqrt_flag)
         % ratio function for building DIRT
                
         function obj = DIRT(func, d, oneds, diag, varargin)

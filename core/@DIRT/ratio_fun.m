@@ -1,11 +1,11 @@
-function f = ratio_fun(obj, func, k, z, sqrt_flag)
+function f = ratio_fun(obj, func, z, sqrt_flag)
 % Evaluate the ratio function during the DIRT construction
-%   f = RATIO_FUN(dirt, func, tp, t, z)
+%   f = RATIO_FUN(dirt, func, k, z, flag)
 %
 %   func - function handle of the target function, returns minus log
 %          likelihood and minus log prior
-%   tp   - previous temperature
-%   t    - current temperature
+%   flag - if return the sqrt of the target function, if FTT.sqrt_flag is
+%          true, then this should be false
 %   z    - reference random variables, d x n
 %   f    - function value
 
@@ -17,9 +17,9 @@ function f = ratio_fun(obj, func, k, z, sqrt_flag)
 % compute the reference density at z
 logfz = log_pdf(obj.diag, z);
 
-if k > 1
-    beta_p = obj.betas(k-1);
-    beta = obj.betas(k);
+if obj.n_layers > 0 % not in the first layer
+    beta_p = obj.betas(obj.n_layers);
+    beta = obj.betas(obj.n_layers+1);
     switch obj.method
         case {'Aratio'}
             logf =  (beta_p - beta)*mllkds + logfz;
@@ -27,7 +27,7 @@ if k > 1
             logf =  - beta*mllkds - mlps - logft + logfz;
     end
 else
-    beta = obj.betas(k);
+    beta = obj.betas(obj.n_layers+1);
     logf = - beta*mllkds - mlps;
 end
 
