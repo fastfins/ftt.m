@@ -74,7 +74,7 @@ end
 fcnt = 2^lo+1;
 
 if ~conv_flag
-    warning('CC quad does not converge')
+    warning(['CC quad does not converge, final error = ' num2str(norm(y-yp, Inf))])
 end
 
 if nargout > 2
