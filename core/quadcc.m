@@ -6,14 +6,13 @@ function [y,fcnt,x,w] = quadcc(fun,a,b,tol)
 %   fun - given as either a string or an inline function
 %   a   - left boundary, 1 x m vector
 %   b   - right boundary, 1 x m vector
-%   tol - tolerance, default is 1E-12
+%   tol - tolerance, default is 1E-10
 %   y   - the result of the integration
 %   fcn - the number of function evaluations
 %   x   - quadrature points used
 %   w   - quadrature weights
 %
 % Example:
-%
 %   fun = @(x,c) 1./(x.^3-2*x-c); % define function
 %   [y, n] = quadcc(@(x) fun(x,5), 0, 2) % integrate
 %
@@ -25,14 +24,17 @@ function [y,fcnt,x,w] = quadcc(fun,a,b,tol)
 %   [y, n, x, w] = quadcc(@(x) fun(x,5), [0,-20], [2,2]);
 %   % User specified tolerance (note: the following does not converge)
 %   [y, n] = quadcc(@(x) fun(x,5), [0,-20], [2,2], 1E-16)
-
+%
+% Reference: 
+%   Jörg Waldvogel. Fast Construction of the Fejer and Clenshaw-Curtis 
+%   Quadrature Rules. BIT Numerical Mathematics 46 (2006), 195-202.
 
 max_log_order = 16;
 
 if nargin < 3
     error('Need to specify boundary points')
 elseif nargin == 3
-    tol = 1E-12;
+    tol = 1E-10;
 end
 m = length(a);
 if m ~= length(b)
@@ -83,7 +85,7 @@ end
 
 function [z,w] = cc_rule(log_order)
 % Generating Clenshaw-Curtis rule using the method of Jorg Waldvogel
-%
+
 N = 2^log_order;
 z = cos((0:N)'*pi/N);
 

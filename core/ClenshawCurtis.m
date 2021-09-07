@@ -34,6 +34,8 @@ classdef ClenshawCurtis
     %   % the default order may not be sufficient, refine the quadrature rule
     %   cc = ClenshawCurtis('max_order', 1E4); 
     %   y = cc.int(@(x) fun(x,5), [0,-20], [2,2]);
+    %
+    % See also QUADCC (without using this class)
     
     properties
         max_log_order
