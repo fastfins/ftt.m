@@ -23,14 +23,14 @@ classdef ClenshawCurtis
     % Example: 
     %   fun = @(x,c) 1./(x.^3-2*x-c); % define function
     %   cc = ClenshawCurtis(); % define the quadrature rule
-    %   y = cc.int(@(x) fun(x,5), 0, 2) % integrate
+    %   [y, n] = cc.int(@(x) fun(x,5), 0, 2) % integrate
     %   
     %   % We can also return the points where the function is evaluated at
     %   % and the corresponsing weights
-    %   [y, x, w] = cc.int(@(x) fun(x,5), 0, 2) 
+    %   [y, n, x, w] = cc.int(@(x) fun(x,5), 0, 2);
     %
     %   % Vector valued boundaries
-    %   [y, x, w] = cc.int(@(x) fun(x,5), [0,-20], [2,2]);
+    %   [y, n, x, w] = cc.int(@(x) fun(x,5), [0,-20], [2,2]);
     %   % the default order may not be sufficient, refine the quadrature rule
     %   cc = ClenshawCurtis('max_order', 1E4); 
     %   y = cc.int(@(x) fun(x,5), [0,-20], [2,2]);
@@ -48,7 +48,9 @@ classdef ClenshawCurtis
     
     methods (Static)
         function [x, w] = quad_rule(log_order)
-            % Generating Clenshaw-Curtis quadrature rule 
+            % Generating Clenshaw-Curtis quadrature rule using the method
+            % of Jorg Waldvogel
+            %
             N = 2^log_order;
             x = cos((0:N)'*pi/N);
             
@@ -116,15 +118,16 @@ classdef ClenshawCurtis
             
         end
         
-        function [y,x,w] = int(obj,fun,a,b)
+        function [y,fcnt,x,w] = int(obj,fun,a,b)
             % Adaptive numerical integration using Clenshaw-Curtis,
             % integrates the function from a to b.
-            %   [y,x,w,n] = QUADCC(fun,a,b)
+            %   [y,fcn,x,w] = INT(cc,fun,a,b)
             %
             %   fun - given as either a string or an inline function
             %   a   - left boundary, 1 x m vector
             %   b   - right boundary, 1 x m vector
             %   y   - the result of the integration
+            %   fcn - the number of function evaluations
             %   x   - quadrature points used
             %   w   - quadrature weights
             
@@ -159,11 +162,13 @@ classdef ClenshawCurtis
                 end
             end
             
+            fcnt = 2^lo+1;
+            
             if ~conv_flag
                 warning('CC quad does not converge')
             end
             
-            if nargout > 1
+            if nargout > 2
                 x = obj.ref_pts(obj.all_ind(:,k)).*jac + tmp;
                 w = obj.weights(obj.all_ind(:,k),k).*jac;
             end
