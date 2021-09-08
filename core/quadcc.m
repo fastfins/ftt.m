@@ -71,7 +71,7 @@ for lo = 1:max_log_order
     end
 end
 
-fcnt = 2^lo+1;
+fcnt = (2^lo+1)*m;
 
 if ~conv_flag
     warning(['CC quad does not converge, final error = ' num2str(norm(y-yp, Inf))])
