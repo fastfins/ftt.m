@@ -4,11 +4,11 @@ Updated on 07/07/2021.
 * Load the folder 'core'. 
 * Type 'help oned' for selecting one dimensional basis.
 * Type 'help FTT' for examples of building FTT. 
-    * An additional example can be found in 'test_cases/test_ftt_basis.m'
+    * An additional example can be found in 'test_cases/example_ftt_basis.m'
 * Type 'help SIRT' for examples of building SIRT. 
-    * Additional examples can be found in 'test_cases/test_sirt_OU'
+    * Additional examples can be found in 'test_cases/sirt_OU'
 * Type 'help DIRT' for examples of building DIRT. 
-    * Examples can be found in 'test_cases/test_dirt'
+    * Examples can be found in 'test_cases/dirt_double_banana'
 
 References: 
 * For SIRT, DIRT, and IRT: 
