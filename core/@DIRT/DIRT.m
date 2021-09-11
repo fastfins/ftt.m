@@ -34,7 +34,64 @@ classdef DIRT
     %
     %%%%%%%%%%%%%%%%%
     %
-    % Example: see test_double_banana.m 
+    % Example: 
+    %
+    % % Use the following function in the example
+    %   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %   function [mllkd, mlp] = fun_banana(u, data, sigma)
+    %   F = log((1-u(1,:)).^2 + 100*(u(2,:)-u(1,:).^2).^2);
+    %   mllkd = sum((F-data).^2,1)/(2*sigma^2);
+    %   mlp = 0.5*sum(u.^2,1);
+    %   end
+    %   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % % Parameters for the target function:
+    %   data=[3;5]; sigma=0.3;
+    %
+    % % Case 1: using a uniform reference measure with Lagrange basis
+    % %
+    % % Define the map to the reference measure
+    %   diag = uniformMap();
+    % % Define two basis functions, the first one is for discretising the 
+    % % 0th level bridging density and the second one is for discretising 
+    % % w.r.t. the reference measure.
+    %   poly = {Lagrange1(60,[-4,4],'ghost_size',1E-2,'bc','Dirichlet'), ...
+    %       Lagrange1(60,diag.domain,'ghost_size',1E-2,'bc','Dirichlet')};
+    % % Define options for running ALS
+    %   opt = FTToption('max_als',4,'init_rank',40,'max_rank', 50);
+    % % Build DIRT using the approximate ratio method. The second argument
+    % % is the dimenion of the parameters, 'ess_tol' is used for adaptation
+    %   dirt = DIRT(@(u)fun_banana(u,data,sigma,beta),2,poly,diag,opt,...
+    %       'min_beta',1E-3,'ess_tol',0.8,'method','Aratio');
+    %
+    % % Case 2: using a uniform reference measure with Legendre basis
+    % %
+    % % Define the map to the reference measure
+    %   diag = uniformMap();
+    % % Define two basis functions, the first one is for discretising the 
+    % % 0th level bridging density and the second one is for discretising 
+    % % w.r.t. the reference measure.
+    %   poly = {Legendre(60, [-4, 4]), Legendre(40, diag.domain)};
+    % % Define options for running ALS
+    %   opt = FTToption('max_als',4,'init_rank',40,'max_rank', 50);
+    % % Build DIRT using the eaxct ratio method. Here the temperatures are
+    % % prespecifed via the parameter 'betas'.
+    %   dirt = DIRT(@(u)fun_banana(u,data,sigma,beta),2,poly,diag,opt,...
+    %       'betas',2.^(-9:0),'method','Eratio');
+    %
+    % % Case 3: using a Gaussian reference measure with Fourier
+    % %
+    % % Define the map to the reference measure
+    %   diag = GaussMap([-4,4]);
+    % % Define two basis functions, the first one is for discretising the 
+    % % 0th level bridging density and the second one is for discretising 
+    % % w.r.t. the reference measure.
+    %   poly = {Fourier(30,[-4,4]), Fourier(30,diag.domain)};
+    % % Define options for running ALS
+    %   opt = FTToption('max_als',4,'init_rank',40,'max_rank', 50);
+    % % Build DIRT using the approximate ratio method. The second argument
+    % % is the dimenion of the parameters, 'ess_tol' is used for adaptation
+    %   dirt = DIRT(@(u)fun_banana(u,data,sigma,beta),2,poly,diag,opt,...
+    %       'min_beta',1E-3,'ess_tol',0.8,'method','Aratio');
     %
     %%%%%%%%%%%%%%%%%
     %
