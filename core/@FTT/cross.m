@@ -134,9 +134,9 @@ if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_w)
 end
 % 
 if isempty(debug_x)
-    fprintf('\n\n  >> ALS_iter\t max_local_err\t mean_local_err\t max_rank\t cum#fevals\n');
+    fprintf('\n\n  >> ALS  max_local_E  mean_local_E  max_r  cum#fevals\n');
 else
-    fprintf('\n\n  >> ALS_iter\t max_local_err\t mean_local_err\t max_rank\t max_debug_err\t mean_debug_err\t cum#fevals\n');
+    fprintf('\n\n  >> ALS  max_local_E  mean_local_E  max_r  max_debug_E  mean_debug_E  cum#fevals\n');
 end
 
     
@@ -281,10 +281,10 @@ while true % run ALS
     end
     % Print the information of each TT iteration
     if isempty(debug_errs)
-        fprintf('  >> %4i\t %10.5E\t %10.5E\t %10.5E\t %10i\n', ...
+        fprintf('  >> %3i  %10.5E   %10.5E  %5i  %10i\n', ...
             [als_iter, max(errs(ind)), mean(errs(ind)), max(rs), f_evals]);
     else
-        fprintf('  >> %4i\t %10.5E\t %10.5E\t %10.5E\t %10.5E\t %10.5E\t %10i\n', ...
+        fprintf('  >> %3i  %10.5E   %10.5E  %5i  %10.5E   %10.5E  %10i\n', ...
             [als_iter, max(errs(ind)), mean(errs(ind)), max(rs), debug_errs(1), debug_errs(2), f_evals]);
     end
     %

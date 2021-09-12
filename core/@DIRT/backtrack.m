@@ -13,7 +13,7 @@ function gz = backtrack(Juz, Jux, gx)
 %   gz  - gradient of f w.r.t. z
 
 gz = gx;
-[d,n] = size(gz,2);
+[d,n] = size(gz);
 k = length(Juz);
 for l = 1:k
     for i = 1:n

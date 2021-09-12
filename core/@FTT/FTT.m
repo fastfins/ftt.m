@@ -134,6 +134,9 @@ classdef FTT
         z = int(obj)
         % Integrate the entire TT
         
+        [g,f] = grad(obj, x)
+        % gradient of the TT
+        
         ftt = int_block(obj, ind)
         % Integrate a block of TT cores
         

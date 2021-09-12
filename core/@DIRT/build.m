@@ -1,6 +1,23 @@
 function obj = build(obj, func, oneds, sirt_opt)
 
-beta_factor = 1.2;
+beta_factor = 1.1;
+
+%{
+
+    if obj.n_layers > 0 % not in the first layer
+        beta_p = obj.betas(obj.n_layers);
+        beta = obj.betas(obj.n_layers+1);
+        switch obj.method
+            case {'Aratio'}
+                logf =  (beta_p - beta)*mllkds + logfz;
+            case {'Eratio'}
+                logf =  - beta*mllkds - mlps - logft + logfz;
+        end
+    else
+        beta = obj.betas(obj.n_layers+1);
+        logf = - beta*mllkds - mlps;
+    end
+%}
 
 % reference samples
 %{
@@ -41,7 +58,7 @@ while obj.n_layers < obj.max_layers
                     beta = beta*beta_factor;
                     ess = ess_ratio((beta_p-beta)*mllkds);
                 end
-                beta = min(1, beta);
+                beta = min(1, beta/beta_factor);
                 ess = ess_ratio((beta_p-beta)*mllkds);
             case {'Eratio'}
                 % compute ess over sample size
@@ -83,9 +100,19 @@ while obj.n_layers < obj.max_layers
     if obj.n_debugs > 0
         ind1 = ind(1:obj.n_samples);
         ind2 = ind((1:obj.n_debugs)+obj.n_samples);
-        obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
+        %obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
+        
+        if obj.n_layers > 1
+            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, obj.irts{obj.n_layers}, sirt_opt, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
+        else
+            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
+        end
     else
-        obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, 'sample_x', samples(:,ind));
+        if obj.n_layers > 1
+            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, obj.irts{obj.n_layers}, sirt_opt, 'sample_x', samples(:,ind));
+        else
+            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, 'sample_x', samples(:,ind));
+        end
     end
     obj.logz = obj.logz + log(obj.irts{obj.n_layers+1}.z);
     obj.n_evals = obj.n_evals + obj.irts{obj.n_layers+1}.n_evals;

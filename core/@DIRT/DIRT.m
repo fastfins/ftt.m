@@ -125,13 +125,13 @@ classdef DIRT
     end
     
     methods
-        [r,f] = eval_irt(obj, z, k)
+        [r,f,gz,Juz,Jux] = eval_irt(obj, z, k)
         % Evaluate DIRT r = T(z), where z follows some general reference
         
         [r,f] = eval_cirt(obj, x, z)
         % Evaluate the conditional DIRT
         
-        [z, logz] = eval_rt(obj, r, k)
+        [z,logz] = eval_rt(obj, r, k)
         % Evaluate deep RT z = T(r), where z is reference and r is target r.v.
         
         logz = log_pdf(obj, r, k)
@@ -142,6 +142,9 @@ classdef DIRT
         f = ratio_fun(obj, func, z, sqrt_flag)
         % ratio function for building DIRT
                
+        [f,g] = pullback(obj, func, z)
+        % pullback of the target density function
+        
         function obj = DIRT(func, d, oneds, diag, varargin)
             % Call FTT constructor to build the FTT and setup data
             % structures for SIRT. Need to run marginalise after this.

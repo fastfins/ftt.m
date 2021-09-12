@@ -213,7 +213,7 @@ classdef SIRT < FTT
     end
     
     methods
-        [r,f] = eval_irt(obj, z)
+        [r,f,g] = eval_irt(obj, z)
         % Evaluate squared IRT r = T(z), where z is uniform
 
         [r,f] = eval_cirt(obj, x, z)
@@ -229,7 +229,7 @@ classdef SIRT < FTT
 
         fx = eval_pdf(obj, x)
         % Evaluate the marginalise pdf represented by ftt
-
+        
         obj = marginalise(obj, dir) 
         % Marginalise the pdf represented by ftt dimension by dimension
         
