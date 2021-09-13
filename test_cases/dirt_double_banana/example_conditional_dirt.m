@@ -1,9 +1,16 @@
-
+% define the joint density
 sig = 0.3;
-dat = 1; % 2 bananas
 fun = @(z) joint_banana(z,sig);
 
+refmap = GaussMap([-4, 4]);
+poly = {Fourier(25, [-4, 4]), Fourier(25, refmap.domain)};
+opt = FTToption('max_als', 2, 'als_tol', 1E-8, 'local_tol', 1E-5, 'kick_rank', 3, 'init_rank', 30, 'max_rank', 50);
+irt = DIRT(fun, 3, poly, refmap, opt, 'min_beta', 1E-4, 'ess_tol', 0.5, 'method', 'Aratio');
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+data = [-2, -1, 0, 1, 2, 3]; 
 
 red    = '#D95319';
 blue   = '#0072BD';
@@ -14,64 +21,114 @@ xs = linspace(-4, 4, n);
 ys = linspace(-4, 4, n);
 [xx,yy] = meshgrid(xs, ys);
 xts = [xx(:), yy(:)]';
-const = 64/n^2;
-
-[mllkd,mlp] = fun([repmat(dat,1,size(xts,2));xts]);
-bf = exp(-mllkd-mlp);
-
-figure('position', [100, 100, 800, 400])
-subplot(1,2,1)
-contour(xs, ys, reshape(bf(:), n, n), 5, 'linewidth', 2)
-xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
-ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
-set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('$\pi$', 'interpreter', 'latex', 'fontsize', 20)
-colormap default
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-refmap = GaussMap([-4, 4]);
-poly = {Fourier(25, [-4, 4]), Fourier(25, refmap.domain)};
-opt = FTToption('max_als', 2, 'als_tol', 1E-8, 'local_tol', 1E-5, 'kick_rank', 3, 'init_rank', 30, 'max_rank', 50);
-irt = DIRT(fun, 3, poly, refmap, opt, 'min_beta', 1E-4, 'ess_tol', 0.5, 'method', 'Aratio');
-
-rf = log_pdf(irt, [repmat(dat,1,size(xts,2));xts]);
-subplot(1,2,2)
-contour(xs, ys, reshape(exp(rf(:)), n, n), 5, 'linewidth', 2)
-xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
-ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
-set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('$\hat\pi$', 'interpreter', 'latex', 'fontsize', 20)
-colormap default
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-ry = eval_rt(irt, dat);
-
-n  = 100;
+%
 rxs = linspace(refmap.domain(1), refmap.domain(2), n);
 rys = linspace(refmap.domain(1), refmap.domain(2), n);
 [xx,yy] = meshgrid(rxs, rys);
 rts = [xx(:), yy(:)]';
 
-[x,logf] = eval_irt(irt, [repmat(ry,1,size(rts,2));rts]);
-mlf = pullback(irt, fun, [repmat(ry,1,size(rts,2));rts]);
-
-figure('position', [100, 100, 800, 400])
-subplot(1,2,1)
-contour(rxs, rys, reshape(exp(logf(:)), n, n), 5, 'linewidth', 2)
-xlabel('$u_1$', 'interpreter', 'latex', 'fontsize', 20)
-ylabel('$u_2$', 'interpreter', 'latex', 'fontsize', 20)
-set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('$\hat\pi(u)$', 'interpreter', 'latex', 'fontsize', 20)
-colormap default
-subplot(1,2,2)
-contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 5, 'linewidth', 2)
-xlabel('$u_1$', 'interpreter', 'latex', 'fontsize', 20)
-ylabel('$u_2$', 'interpreter', 'latex', 'fontsize', 20)
-set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('$T^\sharp \hat\pi$', 'interpreter', 'latex', 'fontsize', 20)
-colormap default
+for ii = 1:length(data)
+    dat = data(ii); % data
+    ry = eval_rt(irt, dat); % reference sample
+    
+    % true conditional, unnormalised
+    [mllkd,mlp] = fun([repmat(dat,1,size(xts,2));xts]);
+    bf = exp(-mllkd-mlp);
+    % conditional irt density in target space, unnormalised
+    rf = log_pdf(irt, [repmat(dat,1,size(xts,2));xts]);
+    
+    figure('position', [100, 100, 800, 800])
+    subplot(2,2,1)
+    contour(xs, ys, reshape(bf(:), n, n), 5, 'linewidth', 2)
+    xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
+    ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
+    set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
+    title('$\pi$', 'interpreter', 'latex', 'fontsize', 20)
+    colormap default
+    
+    subplot(2,2,2)
+    contour(xs, ys, reshape(exp(rf(:)), n, n), 5, 'linewidth', 2)
+    xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
+    ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
+    set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
+    title('$\hat\pi$', 'interpreter', 'latex', 'fontsize', 20)
+    colormap default
+    
+    % conditional irt density in reference space, unnormalised
+    [x,logf] = eval_irt(irt, [repmat(ry,1,size(rts,2));rts]);
+    % pullback density of the true conditinal
+    mlf = pullback(irt, fun, [repmat(ry,1,size(rts,2));rts]);
+    %
+    subplot(2,2,3)
+    contour(rxs, rys, reshape(exp(logf(:)), n, n), 5, 'linewidth', 2)
+    xlabel('$u_1$', 'interpreter', 'latex', 'fontsize', 20)
+    ylabel('$u_2$', 'interpreter', 'latex', 'fontsize', 20)
+    set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
+    title('$\hat\pi(u)$', 'interpreter', 'latex', 'fontsize', 20)
+    colormap default
+    
+    subplot(2,2,4)
+    contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 5, 'linewidth', 2)
+    xlabel('$u_1$', 'interpreter', 'latex', 'fontsize', 20)
+    ylabel('$u_2$', 'interpreter', 'latex', 'fontsize', 20)
+    set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
+    title('$T^\sharp \hat\pi$', 'interpreter', 'latex', 'fontsize', 20)
+    colormap default
+    
+    init = randn(2,1);
+    tic;
+    out1 = NUTS(@(x) log_target(fun,dat,x), init, 5E3);
+    toc
+    %
+    tic;
+    out2 = NUTS(@(z) log_target_pullback_nuts(irt,fun,ry,z), init, 1E3);
+    xs2 = eval_irt(irt, [repmat(ry,1,size(out2.samples,2));out2.samples]);
+    xx2 = xs2(2:3,:);
+    toc
+    tic;
+    out3 = pCN(@(z) log_target_pullback_pcn(irt,fun,ry,z), init, 5E3, log(10));
+    xs3 = eval_irt(irt, [repmat(ry,1,size(out3.samples,2));out3.samples]);
+    xx3 = xs3(2:3,:);
+    toc
+    
+    figure('position', [100, 100, 1200, 800])
+    subplot(4,3,[1,4])
+    plot(out1.samples(1,:), out1.samples(2,:), '.')
+    xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
+    ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
+    set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
+    title('HMC', 'interpreter', 'latex', 'fontsize', 20)
+    colormap default
+    axis([-4, 4, -4, 4])
+        
+    subplot(4,3,[2,5])
+    plot(xx2(1,:), xx2(2,:), '.')
+    xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
+    ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
+    set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
+    title('HMC, preconditioned', 'interpreter', 'latex', 'fontsize', 20)
+    colormap default
+    axis([-4, 4, -4, 4])
+    
+    subplot(4,3,[3,6])
+    plot(xx3(1,:), xx3(2,:), '.')
+    xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
+    ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
+    set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
+    title('pCN, preconditioned', 'interpreter', 'latex', 'fontsize', 20)
+    colormap default
+    axis([-4, 4, -4, 4])
+    
+    subplot(4,3,7);  autocorr(out1.samples(1,:)); title('$x_1$','interpreter', 'latex'); 
+    subplot(4,3,10); autocorr(out1.samples(2,:)); title('$x_2$','interpreter', 'latex')
+    
+    subplot(4,3,8);  autocorr(xx2(1,:)); title('$x_1$','interpreter', 'latex'); 
+    subplot(4,3,11); autocorr(xx2(2,:)); title('$x_2$','interpreter', 'latex')
+    
+    subplot(4,3,9);  autocorr(xx3(1,:)); title('$x_1$','interpreter', 'latex'); 
+    subplot(4,3,12); autocorr(xx3(2,:)); title('$x_2$','interpreter', 'latex')
+    
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %{
@@ -128,73 +185,6 @@ end
 norm((fp-fm)/(2*tol) - g)
 %}
 
-nsteps = 1E4;
-init = randn(2,1);
-tic;
-out1 = NUTS(@(x) log_target(fun,dat,x), init, nsteps);
-toc
-
-ry = eval_rt(irt, dat);
-tic;
-out2 = NUTS(@(z) log_target_pullback_nuts(irt,fun,ry,z), init, ceil(nsteps/10));
-toc
-
-tic;
-out3 = pCN(@(z) log_target_pullback_pcn(irt,fun,ry,z), init, nsteps, log(10));
-toc
-
-
-xs2 = eval_irt(irt, [repmat(ry,1,size(out2.samples,2));out2.samples]);
-xx2 = xs2(2:3,:);
-
-xs3 = eval_irt(irt, [repmat(ry,1,size(out3.samples,2));out3.samples]);
-xx3 = xs3(2:3,:);
-
-figure('position', [100, 100, 800, 800])
-subplot(2,2,2)
-plot(out1.samples(1,:), out1.samples(2,:), '.')
-xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
-ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
-set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('HMC', 'interpreter', 'latex', 'fontsize', 20)
-colormap default
-axis([-4, 4, -4, 4])
-
-subplot(2,2,1)
-contour(xs, ys, reshape(bf(:), n, n), 5, 'linewidth', 2)
-xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
-ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
-set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('$\pi$', 'interpreter', 'latex', 'fontsize', 20)
-colormap default
-
-subplot(2,2,3)
-plot(xx2(1,:), xx2(2,:), '.')
-xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
-ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
-set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('HMC, preconditioned', 'interpreter', 'latex', 'fontsize', 20)
-colormap default
-axis([-4, 4, -4, 4])
-
-subplot(2,2,4)
-plot(xx3(1,:), xx3(2,:), '.')
-xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
-ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
-set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('pCN, preconditioned', 'interpreter', 'latex', 'fontsize', 20)
-colormap default
-axis([-4, 4, -4, 4])
-
-figure
-subplot(3,2,1); autocorr(out1.samples(1,:)); title('$x_1$','interpreter', 'latex'); ylabel('HMC')
-subplot(3,2,2); autocorr(out1.samples(2,:)); title('$x_2$','interpreter', 'latex')
-
-subplot(3,2,3); autocorr(xx2(1,:)); title('$x_1$','interpreter', 'latex'); ylabel('HMC, pre')
-subplot(3,2,4); autocorr(xx2(2,:)); title('$x_2$','interpreter', 'latex')
-
-subplot(3,2,5); autocorr(xx3(1,:)); title('$x_1$','interpreter', 'latex'); ylabel('pCN, pre')
-subplot(3,2,6); autocorr(xx3(2,:)); title('$x_2$','interpreter', 'latex')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
