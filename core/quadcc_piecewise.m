@@ -6,10 +6,11 @@ nquad = 2^log_order + 1;
 
 if poly.gs > tol
     quadx = ones(nquad*(poly.num_elems+2), legnth(x))*poly.grid(1);
+    quadw = zeros(nquad*(poly.num_elems+2), legnth(x));
 else
     quadx = ones(nquad*poly.num_elems, length(x))*poly.grid(1);
+    quadw = zeros(nquad*poly.num_elems, length(x));
 end
-quadw = quadx;
 
 % index in which the boundary x falls into
 % ei = 0: left ghost cell, ei = poly.num_elems+1: right ghost cell
