@@ -1,24 +1,25 @@
-function [y,fcnt,x,w] = quadcc(fun,a,b,tol)
+function [y,fcnt,z,w,mid,dxdz] = quadccp(fun,theta,a,b,tol)
 % Adaptive numerical integration using Clenshaw-Curtis,
 % integrates the function from a to b.
-%   [y,fcn,x,w] = QUADCC(fun,a,b,tol)
+%   [y,fcnt,refx,refw,] = QUADCCP(fun,theta,a,b,tol)
 %
-%   fun - given as either a string or an inline function
-%   a   - left boundary, 1 x m vector
-%   b   - right boundary, 1 x m vector
-%   tol - tolerance, default is 1E-10
-%   y   - the result of the integration
-%   fcn - the number of function evaluations
-%   x   - quadrature points used
-%   w   - quadrature weights
+%   fun     - given as either a string or an inline function
+%   theta   - parameters that defines the function
+%   a       - left boundary, 1 x m vector
+%   b       - right boundary, 1 x m vector
+%   tol     - tolerance, default is 1E-10
+%   y       - the result of the integration
+%   fcnt    - the number of function evaluations
+%   z       - quadrature points used, in the reference interval [-1,1]
+%   w       - reference quadrature weights
 %
 % Example:
-%   fun = @(x,c) 1./(x.^3-2*x-c); % define function
-%   [y, n] = quadcc(@(x) fun(x,5), 0, 2) % integrate
+%   fun = @(c,x) 1./(x.^3-2*x-c); % define function
+%   [y, n] = quadcc(@(theta,x) fun(theta,x), 5, 0, 2) % integrate
 %
 %   % We can also return the points where the function is evaluated at
 %   % and the corresponsing weights
-%   [y, n, x, w] = quadcc(@(x) fun(x,5), 0, 2);
+%   [y, n, x, w, jac] = quadcc(@(theta,x) fun(theta,x), 5, 0, 2);
 %
 %   % Vector valued boundaries
 %   [y, n, x, w] = quadcc(@(x) fun(x,5), [0,-20], [2,2]);
@@ -43,9 +44,9 @@ end
 % change of variable: x in [a, b] and z in [-1, 1]
 %   z = 2 (x-a)/(b-a) - 1
 %   x = z (b-a)/2 + (a+b)/2
-jac = reshape((b-a)/2, 1, []); % dx/dz
+dxdz = reshape((b-a)/2, 1, []); % dx/dz
 %
-tmp = reshape((b+a)/2, 1, []); % shift
+mid = reshape((b+a)/2, 1, []); % shift by the mid point
 
 y = 0;
 conv_flag = false;
@@ -54,16 +55,16 @@ for lo = 1:max_log_order
     %
     [z,w] = cc_rule(lo);
     if lo == 1
-        x = z.*jac + tmp;
-        f_cache = reshape(feval(fun,x),[],m);
+        x = z.*dxdz + mid;
+        f_cache = reshape(feval(fun,theta,x),[],m);
     else
         n = 2^lo + 1;
         ind1 = 1:2:n;
         ind2 = 2:2:n;
-        x = z(ind2).*jac + tmp;
-        f_cache([ind1,ind2],:) = cat(1, f_cache, reshape(feval(fun,x),[],m));
+        x = z(ind2).*dxdz + mid;
+        f_cache([ind1,ind2],:) = cat(1, f_cache, reshape(feval(fun,theta,x),[],m));
     end
-    y = sum(f_cache.*w,1).*jac;
+    y = sum(f_cache.*w,1).*dxdz;
     %
     if lo > 1 && norm(y - yp, Inf) < tol
         conv_flag = true;
@@ -77,9 +78,4 @@ if ~conv_flag
     warning(['CC quad does not converge, final error = ' num2str(norm(y-yp, Inf))])
 end
 
-if nargout > 2
-    x = z.*jac + tmp;
-    w = w.*jac;
 end
-end
-

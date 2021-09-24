@@ -9,92 +9,127 @@
 polys{1} = Legendre(10, [-4, 4]);
 polys{2} = Fourier(5, [-4, 4]);
 
-% piecewise polynomials 
-% coefficients of piecewise Lagrange polynomials (nodal values) natually 
-% have an innner product weighted by poly.mass_R' * poly.mass_R, where 
+% piecewise polynomials
+% coefficients of piecewise Lagrange polynomials (nodal values) natually
+% have an innner product weighted by poly.mass_R' * poly.mass_R, where
 % poly.mass_R is the upper triangular Choleskt factor of the mass matrix
 %
-polys{3} = Lagrange1(10, [-4, 4], 'ghost_size', 1E-1, 'bc', 'Neumann');
+polys{3} = Lagrange1(10, [-4, 4], 'ghost_size', 0, 'bc', 'Neumann');
 polys{4} = Lagrangep(2, 5, [-4, 4]);
+
+npts = 100;
 
 % integrate g(f'(x, theta)) from domain(1) to x
 % generate x as a row vector
-x = rand(1,100)*4;
+x = rand(1,npts)*4;
 
-theta = randn(polys{1}.num_nodes, 1);
-[y1, n1] = quadcc(@(z) g(polys{1}, theta, z) , polys{1}.domain(1)*ones(size(x)), x, 1E-5);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-theta = randn(polys{2}.num_nodes, 1);
-[y2, n2] = quadcc(@(z) g(polys{2}, theta, z) , polys{2}.domain(1)*ones(size(x)), x, 1E-5);
+theta = randn(polys{1}.num_nodes, npts);
+[y1, n1, z, w, dxdz, mid] = quadccp(@(theta,z) g_block(polys{1},theta,z), theta, polys{1}.domain(1)*ones(size(x)), x, 1E-5);
 
-theta = randn(polys{3}.num_nodes, 1);
+% fixed quad rule
+nquad = 100;
+log_order = ceil(log2(nquad-1));
+[z,w] = cc_rule(log_order);
+dxdz = (x - polys{1}.domain(1)*ones(size(x)))/2;
+mid = (x + polys{1}.domain(1)*ones(size(x)))/2;
+quadx = z.*dxdz + mid;
+quadw = w.*dxdz;
+gx = g_block(polys{1}, theta, quadx);
+y1f = sum(gx.*quadw,1);
+
+y1d = y1;
+n1d = 0;
+for i = 1:length(x)
+    [y1d(i),n] = quad(@(z) g(polys{1}, theta(:,i), z) , polys{1}.domain(1), x(i), 1E-5 );
+    n1d = n1d + n;
+end
+norm(y1d - y1)/norm(y1d)
+norm(y1d - y1f)/norm(y1d)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+theta = randn(polys{2}.num_nodes, npts);
+[y2, n2] = quadccp(@(theta,z) g_block(polys{2},theta,z), theta, polys{2}.domain(1)*ones(size(x)), x, 1E-5);
+
+% fixed quad rule
+nquad = 100;
+log_order = ceil(log2(nquad-1));
+[z,w] = cc_rule(log_order);
+dxdz = (x - polys{2}.domain(1)*ones(size(x)))/2;
+mid = (x + polys{2}.domain(1)*ones(size(x)))/2;
+quadx = z.*dxdz + mid;
+quadw = w.*dxdz;
+gx = g_block(polys{2}, theta, quadx);
+y2f = sum(gx.*quadw,1);
+
+
+y2d = y2;
+n2d = 0;
+for i = 1:length(x)
+    [y2d(i),n] = quad(@(z) g(polys{2}, theta(:,i), z) , polys{2}.domain(1), x(i), 1E-5 );
+    n2d = n2d + n;
+end
+norm(y2d - y2)/norm(y2d)
+norm(y2d - y2f)/norm(y2d)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+theta = randn(polys{3}.num_nodes, npts);
 %directly applying CC does not work
 %[y3, n3] = quadcc(@(z) g(polys{3}, theta, z) , polys{3}.domain(1)*ones(size(x)), x);
 %use the piecewise implementation
-[y3, n3] = quad_piecewise(polys{3}, theta, x);
+%[y3, n3] = quad_piecewise(polys{3}, theta, x);
+
+[quadx,quadw] = quadcc_piecewise(polys{3}, 9, x);
+gx = g_block(polys{3}, theta, quadx);
+y3 = sum(gx.*quadw,1);
+
 %
 %Simpson rule by matlab
 y3d = y3;
 n3d = 0;
 for i = 1:length(x)
-    [y3d(i),n] = quad(@(z) g(polys{3}, theta, z) , polys{3}.domain(1), x(i), 1E-5 );
+    [y3d(i),n] = quad(@(z) g(polys{3}, theta(:,i), z) , polys{3}.domain(1), x(i), 1E-10 );
     n3d = n3d + n;
 end
 norm(y3d - y3)/norm(y3d)
 
-theta = randn(polys{4}.num_nodes, 1);
-[y4, n4] = quad_piecewise(polys{4}, theta, x);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+theta = randn(polys{4}.num_nodes, npts);
+[quadx,quadw] = quadcc_piecewise(polys{4}, 15, x);
+gx = g_block(polys{4}, theta, quadx);
+y4 = sum(gx.*quadw,1);
+
 y4d = y4;
 n4d = 0;
 for i = 1:length(x)
-    [y4d(i),n] = quad(@(z) g(polys{4}, theta, z) , polys{4}.domain(1), x(i), 1E-5 );
+    [y4d(i),n] = quad(@(z) g(polys{4}, theta(:,i), z) , polys{4}.domain(1), x(i), 1E-10 );
     n4d = n4d + n;
 end
 norm(y4d - y4)/norm(y4d)
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [y, fcnt] = quad_piecewise(poly, theta, x)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function y = g_block(poly, theta, z)
+% z: m x n
+% theta: dof x n
 
-% only use Neumann boundary condition for the ghost cell here
+[m, n] = size(z);
+dof = size(theta,1);
 
-% index in which the boundary x falls into
-% ei = 0: left ghost cell, ei = poly.num_elems+1: right ghost cell
-ei = ceil( (x-poly.grid(1))./poly.elem_size );
-
-y = zeros(size(x));
-fcnt = 0;
-for k = 0:(poly.num_elems+1)
-    ind1 = (ei>k);  % integrate the whole element
-    ind2 = (ei==k); % integrate to x
-    n1 = sum(ind1);
-    n2 = sum(ind2);
-    c1 = 0;
-    c2 = 0;
-    if k == 0
-        if n1 > 0
-            [y1,c1] = quadcc(@(z) g(poly, theta, z), poly.domain(1), poly.grid(1), 1E-5);
-            y(ind1) = y(ind1) + y1;
-        end
-        if n2 > 0
-            [y2,c2] = quadcc(@(z) g(poly, theta, z), poly.domain(1)*ones(1,n2), x(ind2), 1E-5);
-            y(ind2) = y(ind2) + y2;
-        end
-    else
-        if n1 > 0
-            [y1,c1] = quadcc(@(z) g(poly, theta, z), poly.grid(k), poly.grid(k+1), 1E-5);
-            y(ind1) = y(ind1) + y1;
-        end
-        if n2 > 0
-            [y2,c2] = quadcc(@(z) g(poly, theta, z), poly.grid(k)*ones(1,n2), x(ind2), 1E-5);
-            y(ind2) = y(ind2) + y2;
-        end
-    end
-    fcnt = fcnt + c1 + c2;
-end
+b = eval_basis_deri(poly, z(:)); % (mn) x dof
+b = reshape(permute(reshape(full(b),m,n,dof), [1,3,2]), m, []);
+B = reshape(permute(reshape(b.*theta(:)',m,dof,n),[1,3,2]),m*n,[]);
+y = reshape(sum(B,2),m,n);
+y = log(2.^y + 1)/log(2);
 
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function y = g(poly, theta, z)
 
 b = eval_basis_deri(poly, z(:));
