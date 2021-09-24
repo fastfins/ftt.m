@@ -42,7 +42,7 @@ y1f = sum(gx.*quadw,1);
 y1d = y1;
 n1d = 0;
 for i = 1:length(x)
-    [y1d(i),n] = quad(@(z) g(polys{1}, theta(:,i), z) , polys{1}.domain(1), x(i), 1E-5 );
+    [y1d(i),n] = quad(@(z) g(polys{1}, theta(:,i), z) , polys{1}.domain(1), x(i), 1E-10 );
     n1d = n1d + n;
 end
 norm(y1d - y1)/norm(y1d)
@@ -68,7 +68,7 @@ y2f = sum(gx.*quadw,1);
 y2d = y2;
 n2d = 0;
 for i = 1:length(x)
-    [y2d(i),n] = quad(@(z) g(polys{2}, theta(:,i), z) , polys{2}.domain(1), x(i), 1E-5 );
+    [y2d(i),n] = quad(@(z) g(polys{2}, theta(:,i), z) , polys{2}.domain(1), x(i), 1E-10 );
     n2d = n2d + n;
 end
 norm(y2d - y2)/norm(y2d)

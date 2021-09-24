@@ -5,9 +5,9 @@ log_order = ceil(log2(nquad-1));
 nquad = 2^log_order + 1;
 
 if poly.gs > tol
-    quadx = zeros(nquad*(poly.num_elems+2), legnth(x));
+    quadx = ones(nquad*(poly.num_elems+2), legnth(x))*poly.grid(1);
 else
-    quadx = zeros(nquad*poly.num_elems, length(x));
+    quadx = ones(nquad*poly.num_elems, length(x))*poly.grid(1);
 end
 quadw = quadx;
 
