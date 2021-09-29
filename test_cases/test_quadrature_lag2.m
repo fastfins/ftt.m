@@ -7,7 +7,7 @@
 %
 poly = Lagrangep(2, 5, [-4, 4], 'ghost_size', 1, 'bc', 'Dirichlet');
 
-npts = 2000;
+npts = 100;
 
 % integrate g(f'(x, theta)) from domain(1) to x
 % generate x as a row vector
