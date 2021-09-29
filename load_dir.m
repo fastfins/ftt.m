@@ -5,4 +5,5 @@ root = pwd();
 
 %addpath([root '/oned_transform']);
 addpath([root '/core']);
+addpath([root '/quad']);
 %addpath([root '/test_cases']);
