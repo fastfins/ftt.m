@@ -21,11 +21,12 @@ classdef empiricalMap
                 error('dimension of the input parameter does not match the dimension of the map')
             end
             u = zeros(size(x));
-            f = ones(1,size(x,2));
+            f = ones(obj.d,size(x,2));
             for i = 1:obj.d
                 ind = sum(x(i,:)' > obj.edges(i,:), 2)';
                 u(i,:) = (obj.pdfs(i,ind)).*(x(i,:)-obj.edges(i,ind)) + obj.cdfs(i,ind);
-                f = f.*obj.pdfs(i,ind);
+                f(i,:) = obj.pdfs(i,ind);
+%                 f = f.*obj.pdfs(i,ind);
             end
         end
         
