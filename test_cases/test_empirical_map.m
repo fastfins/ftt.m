@@ -16,7 +16,8 @@ xlabel('x_2')
 
 
 %%%% step 2: build the empirical map and plot marginal pdfs and cdfs
-EM = empiricalMap(data);
+%%%% the bound for the truncated Gaussian is [-2, 2], default is 4
+EM = empiricalMap(data, 'gauss_bound', 2);
 
 figure
 subplot(2,2,1)

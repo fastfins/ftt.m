@@ -10,6 +10,8 @@ classdef empiricalMap
         hs
         pdfs
         cdfs
+        map_bound
+        map_tail
     end
     
     methods
@@ -29,14 +31,17 @@ classdef empiricalMap
         
         function [z,dzdx] = eval_map(obj, x)
             [u,dudx] = eval_cdf(obj, x);
-            z = erfinv(u*2 - 1)*sqrt(2);
-            dudz = exp( -0.5*z.^2-0.5*log(2*pi) );
+            %
+            scale = 1 - obj.map_tail*2;
+            z = erfinv((2*u-1)*scale)*sqrt(2);
+            dudz = exp( -0.5*z.^2-0.5*log(2*pi) )/scale;
             dzdx = dudx./dudz;
         end
-        
+                
         function [x,dxdz] = eval_imap(obj, z)
-            u = 0.5*( 1 + erf(z/sqrt(2)) ); 
-            dudz = exp( -0.5*z.^2-0.5*log(2*pi) );
+            scale = 1 - obj.map_tail*2;
+            u = 0.5 + erf(z/sqrt(2))/(2*scale); 
+            dudz = exp( -0.5*z.^2-0.5*log(2*pi) )/scale;
             [x,dudx] = eval_icdf(obj, u);
             dxdz = dudz./dudx;
         end
@@ -83,15 +88,19 @@ classdef empiricalMap
             % data: d x n
             
             defaultNbins = -1;
+            defaultGBound = 4;
             p = inputParser;
             addRequired(p, 'data',  @(x) isnumeric(x));
             addOptional(p, 'nbins', defaultNbins, @(x) isnumeric(x) && isscalar(x));
+            addParameter(p,'gauss_bound', defaultGBound, @(x) isnumeric(x) && isscalar(x) && all(x > 0));
             %
             p.KeepUnmatched = false;
             parse(p,data,varargin{:});
             %
             [obj.d, obj.n] = size(data);
             obj.nbins = p.Results.nbins;
+            obj.map_bound = p.Results.gauss_bound;
+            obj.map_tail = ( 1+erf(-obj.map_bound/sqrt(2)) )/2;
             %
             ub = max(data, [], 2);
             lb = min(data, [], 2);
