@@ -5,6 +5,11 @@ function out = pCN(fun, x, N, sigma)
 %   x   - Initial state
 %   N   - Number of steps
 %   M   - Number of steps for running adaptation
+%
+% when sigma = log(2), this is Metropilis independence sampler
+% when sigma > log(2), the proposal chain is negatively correlated, i.e.,
+% antithetic sampling
+% when sigma < log(2), the proposal chain is positively correlated
 
 [mllkd,mlp] = feval(fun, x);
 
