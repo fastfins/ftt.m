@@ -41,10 +41,10 @@ classdef FTToption
     properties (Access = private, Constant = true)
         defaultSQRTFlag = false;
         defaultMaxALS   = 4;
-        defaultALSTol   = 1E-2;
-        defaultInitRank = 10;
+        defaultALSTol   = 1E-4;
+        defaultInitRank = 20;
         defaultKickRank = 2;
-        defaultMaxRank  = 20;
+        defaultMaxRank  = 30;
         defaultLocTol   = 1E-10;
         defaultCDFTol   = 1E-10;
         defaultTTMethod = 'amen';

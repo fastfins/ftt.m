@@ -169,7 +169,7 @@ classdef FTT
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % parsing inputs
-            defaultArg       = Lagrange1(20, [0,1]);
+            defaultArg       = Lagrangep(2, 20, [0,1]);
             defaultOption    = FTToption();
             defaultSampleSet = [];
             defaultDebugSet  = [];
