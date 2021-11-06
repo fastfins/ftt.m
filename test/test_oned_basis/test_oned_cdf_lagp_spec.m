@@ -121,7 +121,7 @@ xs = linspace(lag.domain(1), lag.domain(2), n);
 fi = eval(lag, fl, xs).^2;
 Fi = eval_cdf(lag_cdf, pl, xs);
 
-z = rand(n,1);
+z = rand(1, n);
 tic;r = invert_cdf(lag_cdf, pl, z);toc
 tic; norm(eval_cdf(lag_cdf, pl, r)-z), toc
 

@@ -1,12 +1,12 @@
 classdef SpectralCDF < OnedCDF
-    % SpectralCDF class 
+    % SpectralCDF class
     %
     % For Fourier basis, FourierCDF is used. For other spectral polynomials
-    % in bounded domains, we first transform the polynomial to the 2nd 
+    % in bounded domains, we first transform the polynomial to the 2nd
     % Chebyshev basis, and then apply the inversion. See Chebyshev2ndCDF.
     %
     % Before applying root findings, a grid search based on sampling_nodes
-    % is applied to locate the left and right boundary of root finding. 
+    % is applied to locate the left and right boundary of root finding.
     %
     % See also ChebyshevCDF and FourierCDF.
     
@@ -92,17 +92,20 @@ classdef SpectralCDF < OnedCDF
             end
             %z = reshape(z(:)./norm(:), size(r));
             %
-            norm = reshape(norm, size(z));
-            ind1 = norm > 1E-12;
-            ind2 = ~ind1;
-            z(ind1) = z(ind1)./norm(ind1);
-            %
-            jnd1 = z(ind2) < 1E-12; 
-            jnd2 = ~jnd1;
-            %
-            z(ind2(jnd1)) = 0;
-            z(ind2(jnd2)) = 1;
-            %
+            if numel(norm) > 1
+                norm = reshape(norm, size(z));
+                ind1 = norm > 1E-12;
+                ind2 = ~ind1;
+                z(ind1) = z(ind1)./norm(ind1);
+                %
+                jnd1 = z(ind2) < 1E-12;
+                jnd2 = ~jnd1;
+                %
+                z(ind2(jnd1)) = 0;
+                z(ind2(jnd2)) = 1;
+            else
+                z = z./norm;
+            end
             z = reshape(z, size(r));
             %
             z(z>=1) = 1;
@@ -240,7 +243,7 @@ classdef SpectralCDF < OnedCDF
             end
             %disp(i)
             %norm(f, inf)
-            if rf_flag 
+            if rf_flag
                 disp('newton does not converge')
                 fc = eval_int(obj,coef,c)-rhs;
                 I1 = (fc < 0);

@@ -102,16 +102,19 @@ classdef PiecewiseCDF < OnedCDF
             data = pdf2cdf(obj, pk);
             z = eval_int_lag(obj, data, r);
             %
-            ind1 = data.norm > 1E-12;
-            ind2 = ~ind1;
-            z(ind1) = z(ind1)./data.norm(ind1);
-            %
-            jnd1 = z(ind2) < 1E-12; 
-            jnd2 = ~jnd1;
-            %
-            z(ind2(jnd1)) = 0;
-            z(ind2(jnd2)) = 1;
-            %
+            if numel(data.norm) > 1
+                ind1 = data.norm > 1E-12;
+                ind2 = ~ind1;
+                z(ind1) = z(ind1)./data.norm(ind1);
+                %
+                jnd1 = z(ind2) < 1E-12;
+                jnd2 = ~jnd1;
+                %
+                z(ind2(jnd1)) = 0;
+                z(ind2(jnd2)) = 1;
+            else
+                z = z./data.norm;
+            end
             z = reshape(z, size(r));
             %
             z(z>=1) = 1;
@@ -162,6 +165,7 @@ classdef PiecewiseCDF < OnedCDF
                 switch obj.bc
                     case{'Dirichlet'}
                         r(mask1) = sqrt( 2*tmp )*obj.gs + obj.domain(1);
+             
                     otherwise
                         r(mask1) = tmp*obj.gs + obj.domain(1);
                 end
