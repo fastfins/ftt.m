@@ -1,5 +1,5 @@
-classdef spectral < oned
-% spectral class    - Superclass for Fourier, Chebyshev1st, Chebyshev2nd,
+classdef Spectral < Oned
+% Spectral class    - Superclass for Fourier, Chebyshev1st, Chebyshev2nd,
 %                     and recurr subclasses. The recurr class implements
 %                     Legendre, Jabobi11, Hermite, and Laguerre subclasses
 %

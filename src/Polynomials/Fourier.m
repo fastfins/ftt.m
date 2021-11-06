@@ -1,4 +1,4 @@
-classdef Fourier < spectral
+classdef Fourier < Spectral
     
     properties 
         m
@@ -10,7 +10,7 @@ classdef Fourier < spectral
     
     methods
         function obj = Fourier(order, varargin)
-            [obj.order,obj.domain] = spectral.process_input(order,varargin{:});
+            [obj.order,obj.domain] = Spectral.process_input(order,varargin{:});
             %
             n = obj.order*2 + 2;
             obj.ref_nodes = reshape( sort( (2/n)*(1:n) - 1, 'ascend'), [], 1);

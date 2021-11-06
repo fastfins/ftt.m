@@ -1,5 +1,5 @@
-classdef piecewise < oned
-% piecewise class   - Superclass for Lagrange1 (piecewise linear basis) and 
+classdef Piecewise < Oned
+% Piecewise class   - Superclass for Lagrange1 (piecewise linear basis) and 
 %                     Larangep (piecewise high order Lagrange)
 %
 % Constructors:
@@ -69,9 +69,9 @@ classdef piecewise < oned
     end
     
     methods
-        function obj = piecewise(order, num_elems, varargin)
+        function obj = Piecewise(order, num_elems, varargin)
             [obj.order,obj.num_elems,obj.domain,obj.bc,obj.gs] = ...
-                piecewise.process_input(order, num_elems, varargin{:});
+                Piecewise.process_input(order, num_elems, varargin{:});
             obj.grid = linspace(obj.domain(1)+obj.gs, obj.domain(2)-obj.gs, obj.num_elems+1);
             obj.elem_size = (obj.grid(end)-obj.grid(1))/double(obj.num_elems);
         end

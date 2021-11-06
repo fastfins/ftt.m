@@ -1,4 +1,4 @@
-classdef Lagrange1CDF < Lagrange1 & piecewiseCDF
+classdef Lagrange1CDF < Lagrange1 & PiecewiseCDF
     
     properties
         T
@@ -8,7 +8,7 @@ classdef Lagrange1CDF < Lagrange1 & piecewiseCDF
     methods
         function obj = Lagrange1CDF(poly, varargin)
             obj@Lagrange1(poly.num_elems, poly.domain, 'ghost_size', poly.gs, 'bc', poly.bc);
-            obj@piecewiseCDF(varargin{:});
+            obj@PiecewiseCDF(varargin{:});
             %
             obj.nodes = linspace(obj.domain(1)+obj.gs, obj.domain(2)-obj.gs, obj.num_elems*2+1);
             obj.num_nodes = length(obj.nodes);

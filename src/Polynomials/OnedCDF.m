@@ -1,4 +1,4 @@
-classdef onedCDF
+classdef OnedCDF
     % onedCDF class - Superclass for all one dimensional basis for
     %                 evaluating CDF and inverse of the CDF
     %
@@ -27,7 +27,7 @@ classdef onedCDF
     end
     
     methods
-        function obj = onedCDF(varargin)
+        function obj = OnedCDF(varargin)
             defaultErrTol = 1E-10;
             p = inputParser;
             %

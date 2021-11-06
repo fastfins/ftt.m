@@ -1,4 +1,4 @@
-classdef Chebyshev2nd < spectral
+classdef Chebyshev2nd < Spectral
     
     properties
         n(1,:) % only for Chebyshev
@@ -6,7 +6,7 @@ classdef Chebyshev2nd < spectral
     
     methods
         function obj = Chebyshev2nd(order, varargin)
-            [obj.order,obj.domain] = spectral.process_input(order,varargin{:});
+            [obj.order,obj.domain] = Spectral.process_input(order,varargin{:});
             %
             n = obj.order + 1;
             obj.ref_nodes = reshape( sort( double( cos( vpa(pi)*(1:n)/(n+1) ) ), 'ascend'), [], 1);

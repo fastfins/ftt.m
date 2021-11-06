@@ -1,5 +1,5 @@
-classdef spectralCDF < onedCDF
-    % spectralCDF class 
+classdef SpectralCDF < OnedCDF
+    % SpectralCDF class 
     %
     % For Fourier basis, FourierCDF is used. For other spectral polynomials
     % in bounded domains, we first transform the polynomial to the 2nd 
@@ -20,8 +20,8 @@ classdef spectralCDF < onedCDF
     end
     
     methods
-        function obj = spectralCDF(varargin)
-            obj@onedCDF(varargin{:});
+        function obj = SpectralCDF(varargin)
+            obj@OnedCDF(varargin{:});
             %
             obj.sampling_nodes      = linspace(obj.domain(1), obj.domain(2), max(obj.num_nodes*2, 200));
             obj.sampling_nodes(1)   = obj.domain(1)-eps;

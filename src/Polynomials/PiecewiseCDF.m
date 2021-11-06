@@ -1,5 +1,5 @@
-classdef piecewiseCDF < onedCDF
-    % piecewiseCDF class 
+classdef PiecewiseCDF < OnedCDF
+    % PiecewiseCDF class 
     %
     % For piecewise linear basis (Lagrange1), we directly apply Newton's
     % method after a grid search based on the Lagrange nodes. 
@@ -20,8 +20,8 @@ classdef piecewiseCDF < onedCDF
     end
     
     methods
-        function obj = piecewiseCDF(varargin)
-            obj@onedCDF(varargin{:});
+        function obj = PiecewiseCDF(varargin)
+            obj@OnedCDF(varargin{:});
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

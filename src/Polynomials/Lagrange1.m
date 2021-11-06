@@ -1,4 +1,4 @@
-classdef Lagrange1 < piecewise
+classdef Lagrange1 < Piecewise
     
     properties
         local_mass(2,2) = [2, 1; 1, 2]/6
@@ -8,7 +8,7 @@ classdef Lagrange1 < piecewise
     
     methods
         function obj = Lagrange1(num_elems, varargin)
-            obj@piecewise(1, num_elems, varargin{:});
+            obj@Piecewise(1, num_elems, varargin{:});
             %
             obj.nodes = obj.grid;
             obj.num_nodes = length(obj.grid);

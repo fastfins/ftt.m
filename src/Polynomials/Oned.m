@@ -1,4 +1,4 @@
-classdef oned
+classdef Oned
     % oned class - Superclass for all one dimensional basis
     %
     % oned Properties:

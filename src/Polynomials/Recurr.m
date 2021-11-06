@@ -1,4 +1,4 @@
-classdef recurr < spectral
+classdef Recurr < Spectral
     
     properties
         a(:,1) 
@@ -10,7 +10,7 @@ classdef recurr < spectral
     
     methods
         
-        function obj = recurr(order, domain, a, b, c, normalising)
+        function obj = Recurr(order, domain, a, b, c, normalising)
             %
             obj.a = a;
             obj.b = b;

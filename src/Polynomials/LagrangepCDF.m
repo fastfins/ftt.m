@@ -1,4 +1,4 @@
-classdef LagrangepCDF < Lagrangep & piecewiseCDF
+classdef LagrangepCDF < Lagrangep & PiecewiseCDF
     
     properties
         cheby Chebyshev2nd
@@ -60,7 +60,7 @@ classdef LagrangepCDF < Lagrangep & piecewiseCDF
     methods
         function obj = LagrangepCDF(poly, varargin)
             obj@Lagrangep(poly.order, poly.num_elems, poly.domain, 'ghost_size', poly.gs, 'bc', poly.bc);
-            obj@piecewiseCDF(varargin{:});
+            obj@PiecewiseCDF(varargin{:});
             
             % local CDF poly
             obj.cheby = LagrangepCDF.lag2cheby(poly.order*2, poly.local.domain);

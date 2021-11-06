@@ -1,4 +1,4 @@
-classdef Lagrangep < piecewise
+classdef Lagrangep < Piecewise
     
     properties
         local LagrangeRef
@@ -10,7 +10,7 @@ classdef Lagrangep < piecewise
     methods
         
         function obj = Lagrangep(order, num_elems, varargin)
-            obj@piecewise(order, num_elems, varargin{:});
+            obj@Piecewise(order, num_elems, varargin{:});
             %
             if order == 1
                 disp('should use Lagrange1')

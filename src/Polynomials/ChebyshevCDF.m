@@ -1,9 +1,9 @@
-classdef ChebyshevCDF < Chebyshev2nd & spectralCDF
+classdef ChebyshevCDF < Chebyshev2nd & SpectralCDF
         
     methods
         function obj = ChebyshevCDF(poly, varargin)
             obj@Chebyshev2nd(poly.order*2, poly.domain); 
-            obj@spectralCDF(varargin{:});
+            obj@SpectralCDF(varargin{:});
         end
     end
     
