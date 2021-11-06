@@ -1,7 +1,7 @@
 function [B,A,r] = local_truncate(loc_err_tol, min_rank, max_rank, oned, F)
 % Truncate the svd for each TT block
 %
-if isa(oned, 'piecewise')
+if isa(oned, 'Piecewise')
     %[U,S,V] = svd( kron(speye(rold), obj.oneds{k}.mass_L') * F, 0 );
     [U,S,V] = svd( reshape(oned.mass_R*reshape(F,oned.num_nodes,[]),size(F,1),[]), 0);
     s = diag(S);

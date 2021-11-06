@@ -200,12 +200,12 @@ classdef FTT
                 obj.oneds = cell(d,1);
                 if isa(arg, 'cell')
                     for k = 1:d
-                        if ~isa(arg{k}, 'oned')
+                        if ~isa(arg{k}, 'Oned')
                             error('wrong type of argument')
                         end
                         obj.oneds{k} = arg{k};
                     end
-                elseif isa(arg, 'oned')
+                elseif isa(arg, 'Oned')
                     for k = 1:d
                         obj.oneds{k} = arg;
                     end

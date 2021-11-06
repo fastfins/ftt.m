@@ -45,7 +45,7 @@ if sqrt_flag
     end
     f   = f.^(0.5);
 end
-if isa(oned, 'spectral')
+if isa(oned, 'Spectral')
     f = oned.node2basis*reshape(permute(f, [2,1,3,4]), oned.num_nodes, []);
     f = permute(reshape(f, oned.num_nodes, nileft, niright, []), [2 1 3 4]);
 end

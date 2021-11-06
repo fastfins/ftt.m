@@ -47,7 +47,7 @@ end
 
 % sample
 z = rand(d, 1E4);
-for i = 1:4
+for i = 1:2
     for j = 1:3
         figure
         tic;[r,f] = eval_irt(irts{i,j}, z);toc

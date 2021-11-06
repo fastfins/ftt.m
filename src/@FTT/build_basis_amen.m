@@ -67,7 +67,7 @@ else
     rrold   = nrright;
 end
 % enrich basis
-if isa(oned, 'piecewise')
+if isa(oned, 'Piecewise')
     % T = kron(speye(rold), oned.mass_L') * [B, Fu];
     T = reshape(oned.mass_R*reshape([B,Fu],oned.num_nodes,[]),size(B,1),[]);
     [Q,R] = qr(T,0);
