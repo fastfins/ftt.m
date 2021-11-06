@@ -47,6 +47,11 @@ classdef DIRT
     % % Parameters for the target function:
     %   data=[3;5]; sigma=0.3;
     %
+    % % Use the default option, Gaussian reference with 2nd order Langrange 
+    % % basis, only need to provide the density funtion, dimension of
+    % % random variables and domain
+    %   dirt = DIRT(@(u)fun_banana(u,data,sigma,beta),2,[-4,4]);
+    %
     % % Case 1: using a uniform reference measure with Lagrange basis
     % %
     % % Define the map to the reference measure
@@ -145,11 +150,12 @@ classdef DIRT
         [f,g] = pullback(obj, func, z)
         % pullback of the target density function
         
-        function obj = DIRT(func, d, oneds, diag, varargin)
+        function obj = DIRT(func, d, arg, varargin)
             % Call FTT constructor to build the FTT and setup data
             % structures for SIRT. Need to run marginalise after this.
             % parsing inputs
-            defaultOption   = FTToption();
+            defaultOption   = FTToption('max_als', 2);
+            defaultDiag = GaussMap([-4, 4]);
             defaultMethod   = 'Aratio';
             expectedMethod  = {'Eratio','Aratio'};
             defaultMLayers  = 50;
@@ -157,7 +163,7 @@ classdef DIRT
             defaultNSamples = 1E3;
             defaultNDebugs  = 1E3;
             defaultMinBeta  = 1E-6;
-            defaultESSTol   = 0.2;
+            defaultESSTol   = 0.5;
             defaultBetas    = [];
             
             p = inputParser;
@@ -165,8 +171,9 @@ classdef DIRT
             %
             addRequired(p, 'func',  @(x) isa(x, 'function_handle'));
             addRequired(p, 'd',     validScalarPosNum);
-            addRequired(p, 'oneds');
-            addRequired(p, 'diag');
+            %addRequired(p, 'oneds');
+            addRequired(p, 'arg');
+            addOptional(p, 'diag', defaultDiag);
             %
             addOptional(p, 'option',defaultOption);
             addParameter(p,'method',defaultMethod, ...
@@ -180,13 +187,12 @@ classdef DIRT
             addParameter(p,'betas', defaultBetas);
             %
             p.KeepUnmatched = false;
-            parse(p,func,d, oneds, diag, varargin{:});
+            parse(p,func,d,arg,varargin{:});
             %
             sirt_opt = p.Results.option;
             obj.d = d;
-            obj.diag = diag;
+            obj.diag = p.Results.diag;
             obj.method = p.Results.method;
-            obj.diag = diag;
             obj.max_layers = p.Results.max_layers;
             %obj.qmc_flag = p.Results.qmc_flag;
             obj.n_samples = p.Results.n_samples;
@@ -194,6 +200,34 @@ classdef DIRT
             %
             obj.min_beta = p.Results.min_beta;
             obj.ess_tol = p.Results.ess_tol;
+            %
+            % reconstruct oneds
+            if isa(arg, 'cell')
+                for k = 1:length(arg)
+                    if ~isa(arg{k}, 'Oned')
+                        error('wrong type of argument')
+                    end
+                    oneds = arg;
+                end
+            elseif isa(arg, 'Oned')
+                % iniitialize the second polynomial using the first
+                oneds = cell(2,1);
+                oneds{1} = arg;
+                if isa(arg, 'Lagrange1')
+                    oneds{2} = feval(class(arg), arg.num_elems, obj.diag.domain, 'ghost_size', arg.gs, 'bc', arg.bc);
+                elseif isa(arg, 'Lagrangep')
+                    oneds{2} = feval(class(arg), arg.order, arg.num_elems, obj.diag.domain, 'ghost_size', arg.gs, 'bc', arg.bc);
+                else
+                    oneds{2} = feval(class(arg), arg.order, obj.diag.domain);
+                end
+                elseif isa(arg, 'numeric') && length(arg) == 2
+                % arg give the domain
+                oneds = cell(2,1);
+                oneds{1} = Lagrangep(2, 25, arg);
+                oneds{2} = Lagrangep(2, 25, obj.diag.domain);
+            else
+                error('wrong type of argument')
+            end
             %
             betas = p.Results.betas;
             if isempty(betas)
