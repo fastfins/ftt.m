@@ -163,7 +163,7 @@ classdef DIRT
             defaultNSamples = 1E3;
             defaultNDebugs  = 1E3;
             defaultMinBeta  = 1E-6;
-            defaultESSTol   = 0.618;
+            defaultESSTol   = 0.5;
             defaultBetas    = [];
             
             p = inputParser;
