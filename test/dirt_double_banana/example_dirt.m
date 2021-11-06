@@ -46,13 +46,6 @@ colormap default
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-dirt = DIRT(fun,2,[-4,4]);
-
-return
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 diag = uniformMap();
 %diag = GaussMap([-4, 4]);
 
@@ -139,7 +132,7 @@ for k = 1:eirt.n_layers
     xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
     ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
     set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-    title('$\hat\pi', 'interpreter', 'latex', 'fontsize', 20)
+    title('$\hat\pi$', 'interpreter', 'latex', 'fontsize', 20)
     
     subplot(2,2,2)
     contour(xs, ys, reshape(bf(:), n, n), 8, 'linewidth', 1)
