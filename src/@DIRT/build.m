@@ -32,7 +32,25 @@ end
 
 ns = obj.n_samples+obj.n_debugs;
 zs = rand(obj.d, ns);
-samples = eval_icdf(obj.diag, zs);
+% samples = eval_icdf(obj.diag, zs);
+
+% oneds{1} should always be a cell for debug samples to work
+if (~isa(oneds{1}, 'cell'))
+    oneds{1} = repmat(oneds(1), 1, obj.d);
+end
+
+% Zeroth layer must be in the Lebesgue measure
+samples = zeros(obj.d, ns);
+poly_counter = 1;
+for i=1:obj.d
+    samples(i,:) = zs(i,:) .* (max(oneds{1}{poly_counter}.domain) - min(oneds{1}{poly_counter}.domain)) + min(oneds{1}{poly_counter}.domain);
+    if poly_counter < numel(oneds{1})
+        poly_counter = poly_counter + 1;
+    else
+        poly_counter = numel(oneds{1});
+    end    
+end
+
 
 beta = 0;
 obj.n_evals = 0;
@@ -116,16 +134,22 @@ while obj.n_layers < obj.max_layers
     end
     obj.logz = obj.logz + log(obj.irts{obj.n_layers+1}.z);
     obj.n_evals = obj.n_evals + obj.irts{obj.n_layers+1}.n_evals;
-    obj.n_layers = obj.n_layers + 1;
+    obj.n_layers = obj.n_layers + 1;   
     if poly_counter < length(oneds)
         poly_counter = poly_counter + 1;
     else
+        % This should be exactly 2: one for Lebesgue, another for Ref 
         poly_counter = length(oneds);
     end
     
     % stop
     if abs(beta - 1) < 1E-10
         break;
+    end
+    
+    if obj.n_layers == 1
+        % Debugging and adaptation samples must be from reference now
+        samples = eval_icdf(obj.diag, zs);
     end
 end
 

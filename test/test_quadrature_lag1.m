@@ -17,7 +17,9 @@ theta = randn(poly.num_nodes, npts);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+tic;
 [y1,grad] = quad_Lagrange1_deri(poly, theta, x);
+toc;
 
 %
 %Simpson rule by matlab
