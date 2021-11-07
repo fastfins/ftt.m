@@ -37,8 +37,11 @@ out.samples = zeros(np,N);
 out.sigma = zeros(1,N);
 out.tree = zeros(2,N);
 
+out.samples(:,1) = state.x;
+out.mlp(1) = state.mlp;
+out.sigma(1) = sigma;
 % start MCMC
-for i = 1:N
+for i = 2:N
     %%%% one iteration of NUTS
     % new momentum
     state.v = randn(size(state.x));

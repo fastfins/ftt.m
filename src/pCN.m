@@ -21,9 +21,11 @@ dt  = exp(sigma);
 a   = 2*sqrt(2*dt)/(2+dt);  % compute beta
 b   = (2-dt)/(2+dt);        % sqrt( 1-beta^2 )
 
+out.samples(:,1) = x;
+out.mlp(1) = mlp+mllkd;
 acc_t = 0;
 % start MCMC
-for i = 1:N
+for i = 1:(N-1)
     %
     r   = randn(np,1);
     xn  = b*x + a*r;
@@ -40,8 +42,8 @@ for i = 1:N
     if mod(i,100)==0, disp(i), end
     
     %
-    out.samples(:,i) = x;
-    out.mlp(i) = mlp+mllkd;
+    out.samples(:,i+1) = x;
+    out.mlp(i+1) = mlp+mllkd;
 end
 
 out.acc_rate = acc_t/N;
