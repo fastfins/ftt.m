@@ -1,4 +1,4 @@
-classdef GaussMap < diagonalMap
+classdef GaussMap < DiagonalMap
     
     properties
         left 
@@ -29,7 +29,7 @@ classdef GaussMap < diagonalMap
         end
         
         function obj = GaussMap(domain)
-            obj@diagonalMap(domain);
+            obj@DiagonalMap(domain);
             % quantiles of the truncation
             obj.left  = normcdf(obj.domain(1));
             obj.right = normcdf(obj.domain(2));

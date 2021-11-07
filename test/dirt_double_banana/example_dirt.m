@@ -46,7 +46,7 @@ colormap default
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-diag = uniformMap();
+diag = UniformMap();
 %diag = GaussMap([-4, 4]);
 
 poly1 = {Legendre(60, [-4, 4]), Legendre(40, diag.domain)};

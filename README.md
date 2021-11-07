@@ -12,10 +12,11 @@ Updated on 07/11/2021.
 
 Important change of interfaces:
 * All polynomial classes have name started with Capital letters. This does not impact most of old code, but need to be careful with checking the abstract class type `Piecewise`, `Spectral` and `Oned`---those used to start with lower case iniitals.
+* All diagonal map classes also have name started with Capital letters. This affects `EmpiricalMap`, 'UniformMap', and the abstract `DiagonalMap`.
 * The DIRT class now has a simplified interface. 
-    * In the simplest case, one only needs to passin the density function, the parameter dimension and the approximation domain. This automatically override the default FTT option (in DIRT class), use a default 2nd order Lagrange polynimal basis, and use the Gaussian reference. 
-    * Alternatively, one can specify the density function, the parameter dimension and the approximation polynomial basis (with a given domain). This automatically override the default FTT option (in DIRT class) and use the Gaussian reference. 
-    * One can also have the full specification, with polynomial basis for each layer, reference measure, FTT options, etc. 
+    * In the simplest case, one only needs to passin the density function, the parameter dimension and the approximation domain. This automatically override the default FTT option (in DIRT class), use a default 2nd order Lagrange polynimal basis, and use the Gaussian reference. See `example_dirt_default.m`.
+    * Alternatively, one can specify the density function, the parameter dimension and the approximation polynomial basis (with a given domain). This automatically override the default FTT option (in DIRT class) and use the Gaussian reference. See `example_conditional_dirt_sec5.m`.
+    * One can also have the full specification, with polynomial basis for each layer, reference measure, FTT options, etc.  See `example_dirt.m`.
 
 References: 
 * For SIRT, DIRT, and IRT: 
