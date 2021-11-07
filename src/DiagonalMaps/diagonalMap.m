@@ -24,6 +24,19 @@ classdef diagonalMap
         logf = log_pdf(obj, z)
         % Return the log of the reference pdf
         
+        function z = random(obj, d, n)
+            % pseudo random samples
+            u = rand(d, n);
+            z = eval_icdf(obj, u);
+        end
+        
+        function z = sobol(obj, d, n)
+            % QMC samples using Sobol sequence
+            S = sobolset(d);
+            u = net(S, 2^ceil(log2(n)));
+            z = eval_icdf(obj, u');
+        end
+        
         function obj = diagonalMap(domain)
             obj.domain  = domain;
         end

@@ -22,6 +22,7 @@ classdef uniformMap < diagonalMap
             end
             obj@diagonalMap(domain);
         end
+        
     end
     
 end
