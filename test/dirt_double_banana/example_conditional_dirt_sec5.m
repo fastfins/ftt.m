@@ -6,7 +6,7 @@ fun = @(z) joint_banana(z,sig);
 
 refmap = GaussMap([-4, 4]);
 poly = Fourier(25, [-4, 4]); 
-opt = FTToption('max_als', 2, 'als_tol', 1E-8, 'local_tol', 1E-5, 'kick_rank', 1, 'init_rank', 20, 'max_rank', 20);
+opt = FTToption('max_als', 2, 'als_tol', 1E-8, 'local_tol', 1E-5, 'kick_rank', 2, 'init_rank', 20, 'max_rank', 30);
 if ~exist('irt')
     irt = DIRT(fun, 3, poly, refmap, opt, 'ess_tol', 0.5); % the conditonal DIRT
 end
@@ -146,7 +146,7 @@ for ii = 1:length(data)
     axis([-2, 2, -1, 2])
     
     
-    nsteps = 2^12;
+    nsteps = 2^10;
     init = [0.9; 0];
     tic;
     out1 = NUTS(@(x) log_target(fun,dat,x), init, nsteps);
