@@ -55,7 +55,7 @@ classdef GaussMap < DiagonalMap
         function z = sobol(obj, d, n)
             % QMC samples using Sobol sequence
             S = sobolset(d);
-            u = net(S, 2^ceil(log2(n)));
+            u = net(S, 2^ceil(log2(n)))';
             %
             u = u*(obj.right-obj.left) + obj.left;
             z = erfinv(u*2 - 1)*sqrt(2);

@@ -6,7 +6,7 @@ fun = @(z) joint_banana(z,sig);
 
 refmap = GaussMap([-4, 4]);
 poly = Fourier(25, [-4, 4]); 
-opt = FTToption('max_als', 2, 'als_tol', 1E-8, 'local_tol', 1E-5, 'kick_rank', 2, 'init_rank', 20, 'max_rank', 30);
+opt = FTToption('max_als', 2, 'als_tol', 1E-8, 'local_tol', 1E-5, 'kick_rank', 2, 'init_rank', 20, 'max_rank', 20);
 if ~exist('irt')
     irt = DIRT(fun, 3, poly, refmap, opt, 'ess_tol', 0.5); % the conditonal DIRT
 end
@@ -22,7 +22,7 @@ blue   = '#0072BD';
 purple = '#7E2F8E';
 grey = [0.7, 0.7, 0.7];
 
-n  = 200;
+n  = 100;
 xs = linspace(-4, 4, n);
 ys = linspace(-4, 4, n);
 [xx,yy] = meshgrid(xs, ys);
@@ -44,9 +44,9 @@ for ii = 1:length(data)
     % conditional irt density in target space, unnormalised
     rf = log_pdf(irt, [repmat(dat,1,size(xts,2));xts]);
     
-    figure('position', [100, 100, 1200, 800])
+    figure('position', [100, 100, 1200, 600])
     subplot(2,4,1)
-    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', 1)
+    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', 1, 'Color', blue)
     xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 16)
     ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 16)
     set(gca, 'fontsize', 16, 'TickLabelInterpreter','latex')
@@ -55,7 +55,7 @@ for ii = 1:length(data)
     axis([-2, 2, -1, 2])
     
     subplot(2,4,5)
-    contour(xs, ys, reshape(exp(rf(:)), n, n), 10, 'linewidth', 1)
+    contour(xs, ys, reshape(exp(rf(:)), n, n), 10, 'linewidth', 1, 'Color', blue)
     xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 16)
     ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 16)
     set(gca, 'fontsize', 16, 'TickLabelInterpreter','latex')
@@ -69,83 +69,83 @@ for ii = 1:length(data)
     
     r = random(irt.diag, 2, 256); % sample the reference measure
     subplot(2,4,2)
-    %contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 20, 'linewidth', 1)
-    contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 10, 'linewidth', 1, 'Color', grey)
+    contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 20, 'linewidth', 1, 'Color', blue)
     hold on
-    plot(r(1,:), r(2,:), '.', 'MarkerSize', 15, 'Color', purple)
+    plot(r(1,:), r(2,:), '.', 'MarkerSize', 10, 'Color', purple)
     xlabel('$u_1$', 'interpreter', 'latex', 'fontsize', 16)
     ylabel('$u_2$', 'interpreter', 'latex', 'fontsize', 16)
     set(gca, 'fontsize', 16, 'TickLabelInterpreter','latex')
     title('$T^\sharp \pi$, random', 'interpreter', 'latex', 'fontsize', 16)
     colormap default
+    axis([-3, 3, -3, 3])
     
     xx = eval_irt(irt, [repmat(ry,1,size(r,2));r]);
     xx = xx(2:3,:);
     subplot(2,4,6)
-    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', 1, 'Color', grey)
+    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', 1, 'Color', blue)
     hold on
-    plot(xx(1,:), xx(2,:), '.', 'MarkerSize', 15, 'Color', purple)
+    plot(xx(1,:), xx(2,:), '.', 'MarkerSize', 10, 'Color', purple)
     xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 16)
     ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 16)
     set(gca, 'fontsize', 16, 'TickLabelInterpreter','latex')
-    title('$\hat\pi$', 'interpreter', 'latex', 'fontsize', 16)
+    title('$\pi$', 'interpreter', 'latex', 'fontsize', 16)
     colormap default
     axis([-2, 2, -1, 2])
     
     
     r = sobol(irt.diag, 2, 256); % QMC sample the reference measure
     subplot(2,4,3)
-    %contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 20, 'linewidth', 1)
-    contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 10, 'linewidth', 1, 'Color', grey)
+    contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 20, 'linewidth', 1, 'Color', blue)
     hold on
-    plot(r(1,:), r(2,:), '.', 'MarkerSize', 15, 'Color', purple)
+    plot(r(1,:), r(2,:), '.', 'MarkerSize', 10, 'Color', purple)
     xlabel('$u_1$', 'interpreter', 'latex', 'fontsize', 16)
     ylabel('$u_2$', 'interpreter', 'latex', 'fontsize', 16)
     set(gca, 'fontsize', 16, 'TickLabelInterpreter','latex')
     title('$T^\sharp \pi$, Sobol', 'interpreter', 'latex', 'fontsize', 16)
     colormap default
+    axis([-3, 3, -3, 3])
     
     xx = eval_irt(irt, [repmat(ry,1,size(r,2));r]);
     xx = xx(2:3,:);
     subplot(2,4,7)
-    contour(xs, ys, reshape(exp(rf(:)), n, n), 10, 'linewidth', 1, 'Color', grey)
+    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', 1, 'Color', blue)
     hold on
-    plot(xx(1,:), xx(2,:), '.', 'MarkerSize', 15, 'Color', purple)
+    plot(xx(1,:), xx(2,:), '.', 'MarkerSize', 10, 'Color', purple)
     xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 16)
     ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 16)
     set(gca, 'fontsize', 16, 'TickLabelInterpreter','latex')
-    title('$\hat\pi$', 'interpreter', 'latex', 'fontsize', 16)
+    title('$\pi$', 'interpreter', 'latex', 'fontsize', 16)
     colormap default
     axis([-2, 2, -1, 2])
     
     % regular grid in the reference measure
-    [xx,yy] = meshgrid(linspace(-4,4,16), linspace(-4,4,16));
+    [xx,yy] = meshgrid(linspace(-3,3,16), linspace(-3,3,16));
     r = [xx(:), yy(:)]';
     subplot(2,4,4)
-    %contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 20, 'linewidth', 1)
-    contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 10, 'linewidth', 1, 'Color', grey)
+    contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 20, 'linewidth', 1, 'Color', blue)
     hold on
-    plot(r(1,:), r(2,:), '.', 'MarkerSize', 15, 'Color', purple)
+    plot(r(1,:), r(2,:), '.', 'MarkerSize', 10, 'Color', purple)
     xlabel('$u_1$', 'interpreter', 'latex', 'fontsize', 16)
     ylabel('$u_2$', 'interpreter', 'latex', 'fontsize', 16)
     set(gca, 'fontsize', 16, 'TickLabelInterpreter','latex')
     title('$T^\sharp \pi$, grid', 'interpreter', 'latex', 'fontsize', 16)
     colormap default
+    axis([-3, 3, -3, 3])
     
     xx = eval_irt(irt, [repmat(ry,1,size(r,2));r]);
     xx = xx(2:3,:);
     subplot(2,4,8)
-    contour(xs, ys, reshape(exp(rf(:)), n, n), 10, 'linewidth', 1, 'Color', grey)
+    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', 1, 'Color', blue)
     hold on
-    plot(xx(1,:), xx(2,:), '.', 'MarkerSize', 15, 'Color', purple)
+    plot(xx(1,:), xx(2,:), '.', 'MarkerSize', 10, 'Color', purple)
     xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 16)
     ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 16)
     set(gca, 'fontsize', 16, 'TickLabelInterpreter','latex')
-    title('$\hat\pi$', 'interpreter', 'latex', 'fontsize', 16)
+    title('$\pi$', 'interpreter', 'latex', 'fontsize', 16)
     colormap default
     axis([-2, 2, -1, 2])
     
-    
+
     nsteps = 2^10;
     init = [0.9; 0];
     tic;
@@ -172,7 +172,7 @@ for ii = 1:length(data)
     msteps = 1:5;
     figure('position', [100, 100, 1200, 600])
     subplot(4,4,[1,5])
-    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', .5, 'Color', [.8 .8 .8])
+    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', .5, 'Color', grey)
     hold on
     plot(xx1(1,:), xx1(2,:), '.', 'Color', blue)
     plot(xx1(1,msteps), xx1(2,msteps), '-o', 'linewidth', 1, 'Color', purple, 'MarkerFaceColor', purple)
@@ -184,7 +184,7 @@ for ii = 1:length(data)
     axis([-2, 2, -1, 2])
         
     subplot(4,4,[2,6])
-    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', .5, 'Color', [.8 .8 .8])
+    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', .5, 'Color', grey)
     hold on
     plot(xx2(1,:), xx2(2,:), '.', 'Color', blue)
     plot(xx2(1,msteps), xx2(2,msteps), '-o', 'linewidth', 1, 'Color', purple, 'MarkerFaceColor', purple)
@@ -196,7 +196,7 @@ for ii = 1:length(data)
     axis([-2, 2, -1, 2])
     
     subplot(4,4,[3,7])
-    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', .5, 'Color', [.8 .8 .8])
+    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', .5, 'Color', grey)
     hold on
     plot(xx3(1,:), xx3(2,:), '.', 'Color', blue)
     plot(xx3(1,msteps), xx3(2,msteps), '-o', 'linewidth', 1, 'Color', purple, 'MarkerFaceColor', purple)
@@ -209,7 +209,7 @@ for ii = 1:length(data)
     
     
     subplot(4,4,[4,8])
-    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', .5, 'Color', [.8 .8 .8])
+    contour(xs, ys, reshape(bf(:), n, n), 10, 'linewidth', .5, 'Color', grey)
     hold on
     plot(xx4(1,:), xx4(2,:), '.', 'Color', blue)
     plot(xx4(1,msteps), xx4(2,msteps), '-o', 'linewidth', 1, 'Color', purple, 'MarkerFaceColor', purple)
