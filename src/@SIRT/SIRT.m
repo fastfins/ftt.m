@@ -24,6 +24,8 @@ classdef SIRT < FTT
     %               * This function can map marginal random variables.
     %   eval_rt_jac - Evaluate the Jacobian of Z = R(X).
     %               * This function cannot handle marginal random variables.
+    %   random      - Generate random variables
+    %   sobol       - Generate transformed sobol points
     %
     %%%%%%%%%%%%%%%%%
     %
@@ -232,6 +234,18 @@ classdef SIRT < FTT
         
         obj = marginalise(obj, dir) 
         % Marginalise the pdf represented by ftt dimension by dimension
+        
+        function r = random(obj, n)
+            % pseudo random samples
+            u = random(obj.diag, obj.d, n);
+            r = eval_irt(obj, u);
+        end
+        
+        function r = sobol(obj, n)
+            % QMC samples using Sobol sequence
+            u = sobol(obj.diag, obj.d, n);
+            r = eval_irt(obj, u);
+        end
         
         function obj = SIRT(func, d, varargin)
             % Call FTT constructor to build the FTT and setup data 

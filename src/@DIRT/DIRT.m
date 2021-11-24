@@ -31,6 +31,8 @@ classdef DIRT
     %               * This function can map marginal random variables.
     %   backtrack   - Compute the gradient of f(T(z)) w.r.t. z
     %   ratio_fun   - The ratio function used in DIRT construction
+    %   random      - Generate random variables
+    %   sobol       - Generate transformed sobol points
     %
     %%%%%%%%%%%%%%%%%
     %
@@ -149,6 +151,18 @@ classdef DIRT
                
         [f,g] = pullback(obj, func, z)
         % pullback of the target density function
+        
+        function r = random(obj, n)
+            % pseudo random samples
+            z = random(obj.diag, obj.d, n);
+            r = eval_irt(obj, z);
+        end
+        
+        function r = sobol(obj, n)
+            % QMC samples using Sobol sequence
+            z = sobol(obj.diag, obj.d, n);
+            r = eval_irt(obj, z);
+        end
         
         function obj = DIRT(func, d, arg, varargin)
             % Call FTT constructor to build the FTT and setup data
