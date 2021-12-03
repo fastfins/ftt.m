@@ -237,14 +237,17 @@ classdef SIRT < FTT
         
         function r = random(obj, n)
             % pseudo random samples
-            u = random(obj.diag, obj.d, n);
+            d = length(obj.oned_cdfs);
+            u = rand(d, n);
             r = eval_irt(obj, u);
         end
         
         function r = sobol(obj, n)
             % QMC samples using Sobol sequence
-            u = sobol(obj.diag, obj.d, n);
-            r = eval_irt(obj, u);
+            d = length(obj.oned_cdfs);
+            S = sobolset(d);
+            u = net(S,n);
+            r = eval_irt(obj, u');
         end
         
         function obj = SIRT(func, d, varargin)
