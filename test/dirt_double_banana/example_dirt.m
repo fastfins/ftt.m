@@ -54,8 +54,8 @@ poly2 = {Lagrange1(60, [-4, 4], 'ghost_size', 1E-2, 'bc', 'Dirichlet'), Lagrange
 poly3 = {Lagrangep(5, 12, [-4, 4]), Lagrangep(5, 10, diag.domain, 'ghost_size', 1E-2, 'bc', 'Dirichlet')};
 poly4 = {Fourier(30, [-4, 4]), Fourier(30, diag.domain)};
 
-opt1 = FTToption('max_als', 6, 'als_tol', 1E-8, 'local_tol', 1E-10, 'kick_rank', 2, 'init_rank', 40, 'max_rank', 50);
-opt2 = FTToption('tt_method', 'random', 'max_als', 5, 'als_tol', 1E-8, 'local_tol', 1E-10, 'kick_rank', 2, 'init_rank', 40, 'max_rank', 50);
+opt1 = FTToption('max_als', 1, 'als_tol', 1E-8, 'local_tol', 1E-10, 'kick_rank', 2, 'init_rank', 40, 'max_rank', 50);
+opt2 = FTToption('tt_method', 'random', 'max_als', 1, 'als_tol', 1E-8, 'local_tol', 1E-10, 'kick_rank', 2, 'init_rank', 40, 'max_rank', 50);
 
 %irt = DIRT(fun, 2, poly2, diag, opt1, 'min_beta', 1E-3, 'ess_tol', 0.8, 'betas',  2.^(-9:0));
 
