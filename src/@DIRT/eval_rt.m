@@ -18,7 +18,7 @@ logf = zeros(1, size(x,2));
 for l = 1:k
     % ref density, skip the first one
     if l > 1
-        logfz = log_pdf(obj.diag, z);
+        logfz = log_joint_pdf(obj.ref, z);
     else
         logfz = 0;
     end
@@ -27,7 +27,7 @@ for l = 1:k
     % eval pdf (det Jacobian)
     f = eval_pdf(obj.irts{l}, z);
     % evaluate the diagonal transform
-    z = eval_icdf(obj.diag, u);
+    z = invert_cdf(obj.ref, u);
     % update density
     logf = logf + log(f) - logfz;
 end

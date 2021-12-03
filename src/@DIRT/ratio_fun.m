@@ -15,7 +15,7 @@ function f = ratio_fun(obj, func, z, sqrt_flag)
 [mllkds, mlps] = func(x);
 
 % compute the reference density at z
-logfz = log_pdf(obj.diag, z);
+logfz = log_joint_pdf(obj.ref, z);
 
 if obj.n_layers > 0 % not in the first layer
     beta_p = obj.betas(obj.n_layers);

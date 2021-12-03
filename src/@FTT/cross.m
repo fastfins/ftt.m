@@ -141,7 +141,8 @@ end
 
     
 % start
-f_evals  = 0;
+l2_err = 0;
+f_evals = 0;
 als_iter = 0;
 rs = ones(1,obj.d);
 while true % run ALS
@@ -276,8 +277,9 @@ while true % run ALS
     if ~isempty(debug_x)
         exact   = func(debug_x);
         approx  = eval(obj, debug_x);
+        l2_err = mean((exact(:) - approx(:)).^2).^0.5;
         debug_errs(1) = max(abs(exact(:) - approx(:)))  / max(abs(exact(:)));
-        debug_errs(2) = mean((exact(:) - approx(:)).^2).^0.5 / mean(exact(:).^2).^0.5;
+        debug_errs(2) = l2_err / mean(exact(:).^2).^0.5;
     end
     % Print the information of each TT iteration
     if isempty(debug_errs)
@@ -297,5 +299,6 @@ while true % run ALS
         obj.direction = -obj.direction;
     end
 end
+obj.l2_err = l2_err;
 obj.n_evals = f_evals;
 end

@@ -1,6 +1,6 @@
 function z = eval_rt(obj, r)
-% Evaluate the squared Rosenblatt transport Z = R(X), where Z is the uniform 
-% random variable and X is the target random variable. 
+% Evaluate the squared Rosenblatt transport Z = R(X), where Z is the uniform
+% random variable and X is the target random variable.
 %   Z = EVAL_RT(irt, X)
 %
 %   Z - uniform random variables, d x n
@@ -13,14 +13,15 @@ z = zeros(dr,n);
 
 if obj.int_dir > 0 % from left to right
     frl = ones(n,1);
+    fr_ref = ones(1,n);
     for k = 1:dr
         rkm = size(obj.cores{k}, 1);
         nc  = obj.oned_cdfs{k}.num_nodes;
         %
         T1  = reshape( SIRT.eval_oned_core_213(obj.oneds{k}, obj.ys{k}, obj.oned_cdfs{k}.nodes(:)), rkm, []);
-        pk  = reshape(sum(reshape(frl*T1, n*nc, []).^2, 2), n, nc)';
+        pk  = reshape(sum(reshape(frl*T1, n*nc, []).^2, 2), n, nc)'; % squared TT
         %
-        z(k,:)  = eval_cdf(obj.oned_cdfs{k}, pk, r(k,:));
+        z(k,:)  = eval_cdf(obj.oned_cdfs{k}, pk, obj.tau*fr_ref, obj.oned_refs{k}, r(k,:));
         %
         % evaluate the updated basis function
         T2  = SIRT.eval_oned_core_213(obj.oneds{k}, obj.cores{k}, r(k,:));
@@ -29,9 +30,13 @@ if obj.int_dir > 0 % from left to right
         B   = sparse(ii(:), jj(:), frl(:), n, rkm*n);
         frl = B*T2;
         %frl(isnan(frl)) = 0;
+        %
+        fk_ref = eval_pdf(obj.oned_refs{k}, r(k,:));
+        fr_ref = fr_ref.*fk_ref;
     end
 else % from right to left
     frg = ones(1,n);
+    fr_ref = ones(1,n);
     ie  = (d-dr)+1;
     for k = d:-1:ie
         ck  = k-ie+1;
@@ -40,7 +45,7 @@ else % from right to left
         T1  = reshape( SIRT.eval_oned_core_213(obj.oneds{k}, obj.ys{k}, obj.oned_cdfs{k}.nodes(:)), [], rk);
         pk  = reshape(sum(reshape(T1*frg, [], nc*n).^2, 1), nc, n);
         %
-        z(ck,:)  = eval_cdf(obj.oned_cdfs{k}, pk, r(ck,:));
+        z(ck,:)  = eval_cdf(obj.oned_cdfs{k}, pk, obj.tau*fr_ref, obj.oned_refs{k}, r(ck,:));
         %
         % evaluate the updated basis function
         T2  = SIRT.eval_oned_core_231(obj.oneds{k}, obj.cores{k}, r(ck,:));
@@ -49,6 +54,9 @@ else % from right to left
         B   = sparse(ii, jj, frg(:), rk*n, n);
         frg = T2'*B;
         %frg(isnan(frg)) = 0;
+        %
+        fk_ref = eval_pdf(obj.oned_refs{k}, r(ck,:));
+        fr_ref = fr_ref.*fk_ref;
     end
 end
 

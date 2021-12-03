@@ -42,7 +42,7 @@ if obj.int_dir > 0
         Ligeqk = R';
         obj.ms{k} = Ligeqk;
     end
-    obj.z = sum(sum(Ligeqk.^2, 1));
+    obj.tt_z = sum(sum(Ligeqk.^2, 1));
     %Ligeqk
 else
     % start with the 1st dim, upper triangular Chol of the mass matrix
@@ -72,8 +72,10 @@ else
         %size(Rileqk)
         obj.ms{k} = Rileqk;
     end
-    obj.z = sum(sum(Rileqk.^2, 1));
+    obj.tt_z = sum(sum(Rileqk.^2, 1));
     %Rileqk
 end
+
+obj.z = obj.tt_z + obj.tau;
 
 end

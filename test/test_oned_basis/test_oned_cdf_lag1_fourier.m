@@ -1,4 +1,5 @@
- 
+tau = 1E-2; 
+ref = LaplaceReference();
 
 pdf1 = @(x) exp(-0.5*x.^2);
 pdf2 = @(x) exp(-0.5*abs(x));
@@ -14,23 +15,23 @@ pl = eval(lag, fl, lag_cdf.nodes);
 
 xs = linspace(lag.domain(1), lag.domain(2), 1000);
 fi = eval(lag, fl, xs);
-Fi = eval_cdf(lag_cdf, pl, xs);
+Fi = eval_cdf(lag_cdf, pl, tau, ref, xs);
 
 z = rand(5E5,1);
-tic;r = invert_cdf(lag_cdf, pl, z);toc
-tic; norm(eval_cdf(lag_cdf, pl, r)-z), toc
+tic;r = invert_cdf(lag_cdf, pl, tau, ref, z);toc
+tic; norm(eval_cdf(lag_cdf, pl, tau, ref, r)-z), toc
 
 dl = pdf2cdf(lag_cdf, pl);
 
 figure
-plot(xs, fi/dl.norm, xs, Fi)
+plot(xs, fi/dl.poly_norm, xs, Fi)
 hold on
-plot(lag_cdf.grid, dl.cdf_grid/dl.norm, 'o')
+plot(lag_cdf.grid, dl.cdf_poly_grid/dl.poly_norm, 'o')
 ksdensity(r)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-lag = Lagrange1(40, [-5, 5], 'ghost_size', 1);
+lag = Lagrange1(40, [-5, 5]);
 lag_cdf = Lagrange1CDF(lag);
 
 fl = reshape(pdf2(lag.nodes).^0.5,[],1);
@@ -38,18 +39,18 @@ pl = eval(lag, fl, lag_cdf.nodes).^2;
 
 xs = linspace(lag.domain(1), lag.domain(2), 10000);
 fi = eval(lag, fl, xs).^2;
-Fi = eval_cdf(lag_cdf, pl, xs);
+Fi = eval_cdf(lag_cdf, pl, tau, ref, xs);
 
 z = rand(5E5,1);
-tic;r = invert_cdf(lag_cdf, pl, z);toc
-tic; norm(eval_cdf(lag_cdf, pl, r)-z), toc
+tic;r = invert_cdf(lag_cdf, pl, tau, ref, z);toc
+tic; norm(eval_cdf(lag_cdf, pl, tau, ref, r)-z), toc
 
 dl = pdf2cdf(lag_cdf, pl);
 
 figure
-plot(xs, fi/dl.norm, xs, Fi)
+plot(xs, fi/dl.poly_norm, xs, Fi)
 hold on
-plot(lag.nodes, fl.^2/dl.norm, 'o', lag_cdf.nodes, pl/dl.norm, 's')
+plot(lag.nodes, fl.^2/dl.poly_norm, 'o', lag_cdf.nodes, pl/dl.poly_norm, 's')
 ksdensity(r)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,16 +69,17 @@ dl = pdf2cdf(lag_cdf, pl);
 
 xs = linspace(lag.domain(1), lag.domain(2), n);
 fi = eval(lag, fl, xs).^2;
-Fi = eval_cdf(lag_cdf, pl, xs);
+Fi = eval_cdf(lag_cdf, pl, tau, ref, xs);
 
-z = rand(1,n);
-tic;r = invert_cdf(lag_cdf, pl, z);toc
-tic; norm(eval_cdf(lag_cdf, pl, r)-z), toc
+z = rand(n,1);
+taus = rand(1,n)*tau;
+tic;r = invert_cdf(lag_cdf, pl, taus, ref, z);toc
+tic; norm(eval_cdf(lag_cdf, pl, taus, ref, r)-z), toc
 
 figure
-plot(xs, fi/dl.norm(1), xs, Fi)
+plot(xs, fi/dl.poly_norm(1), xs, Fi)
 hold on
-plot(lag.nodes, fl.^2/dl.norm(1), 'o', lag_cdf.nodes, pl(:,1)/dl.norm(1), 's')
+plot(lag.nodes, fl.^2/dl.poly_norm(1), 'o', lag_cdf.nodes, pl(:,1)/dl.poly_norm(1), 's')
 ksdensity(r)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,7 +96,7 @@ cdf_nodes = cdf_nodes./cdf_nodes(end,:);
 
 xs = linspace(poly.domain(1), poly.domain(2), 10000);
 fi = eval(poly, fp, xs);
-Fi = eval_cdf(poly_cdf, pp, xs);
+Fi = eval_cdf(poly_cdf, pp, tau, ref, xs);
 
 figure
 plot(xs, fi, xs, Fi)
@@ -116,12 +118,12 @@ cdf_nodes = cdf_nodes./cdf_nodes(end,:);
 
 xs = linspace(poly.domain(1), poly.domain(2), 1000);
 fi = eval(poly, fp, xs).^2;
-Fi = eval_cdf(poly_cdf, pp, xs);
+Fi = eval_cdf(poly_cdf, pp, tau, ref, xs);
 
 
 z = rand(5E5,1);
-tic;r = invert_cdf(poly_cdf, pp, z);toc
-tic; norm(eval_cdf(poly_cdf, pp, r)-z), toc
+tic;r = invert_cdf(poly_cdf, pp, tau, ref, z);toc
+tic; norm(eval_cdf(poly_cdf, pp, tau, ref, r)-z), toc
 
 figure
 plot(xs, fi, xs, Fi)
@@ -147,11 +149,12 @@ cdf_nodes = cdf_nodes./cdf_nodes(end,:);
 
 xs = linspace(poly.domain(1), poly.domain(2), n);
 fi = eval(poly, fp, xs).^2;
-Fi = eval_cdf(poly_cdf, pp, xs);
+Fi = eval_cdf(poly_cdf, pp, tau, ref, xs);
 
 z = rand(n,1);
-tic;r = invert_cdf(poly_cdf, pp, z);toc
-tic; norm(eval_cdf(poly_cdf, pp, r)-z), toc
+taus = rand(1,n)*tau;
+tic;r = invert_cdf(poly_cdf, pp, taus, ref, z);toc
+tic; norm(eval_cdf(poly_cdf, pp, taus, ref, r)-z), toc
 
 figure
 plot(xs, fi.^2, xs, Fi)

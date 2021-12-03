@@ -14,6 +14,17 @@ if size(r,1) ~= d
 end
 J = zeros(d,n*d);
 
+fr_ref = ones(d,n); % save for all dimensions
+gr_ref = ones(d,n);
+zr_ref = ones(d,n);
+for k = 1:d
+    [fk_ref, gk_ref] = eval_pdf(obj.oned_refs{k}, r(k,:));
+    fr_ref(k,:) = fk_ref;
+    gr_ref(k,:) = gk_ref;
+    %
+    zk_ref = eval_cdf(obj.oned_refs{k}, r(k,:));
+    zr_ref(k,:) = zk_ref;       
+end
 if obj.int_dir > 0 % from left to right
     % function value of each block
     block_ftt = cell(d,1);
@@ -45,10 +56,11 @@ if obj.int_dir > 0 % from left to right
     %
     Fm = cell(d,1); % accumulated ftt
     for k = 1:d
-        Fm{k} = sum(G{k}.^2, 2)';
+        Fm{k} = sum(G{k}.^2, 2)' + obj.tau*prod(fr_ref(1:k,:),1);
     end
     %
     % j is the index of the coordinate of differentiation
+    % d(T_k)/d(x_j), k:row, j: col
     for j = 1:d
         ind = (1:d:n*d) + (j-1);
         %
@@ -59,41 +71,55 @@ if obj.int_dir > 0 % from left to right
             J(j,ind) = Fm{j}./Fm{j-1};
         end
         %
-        % derivative of the FTT
-        drl = block_ftt_d{j};
-        % derivative of the FTT, 2nd term, for the d(j+1)/dj term
-        mrl = SIRT.eval_oned_core_213_deri(obj.oneds{j}, obj.ys{j}, r(j,:));
-        if j > 1
-            rjm = size(obj.cores{j}, 1);
-            jj  = reshape(reshape(1:rjm*n, rjm, n)', [], 1);
-            ii  = repmat((1:n)', 1, rjm);
-            B   = sparse(ii(:), jj(:), F{j-1}(:), n, rjm*n);
-            drl = B*drl;
-            mrl = B*mrl;
-        end
-        if j < d
-            J(j+1,ind) = J(j+1,ind) - sum(G{j}.*mrl,2)'.*z(j+1,:);
-        end
-        %
-        for k = (j+1):d
-            % accumulate the j-th block and ealuate the integral
-            rkm = size(obj.cores{k}, 1);
-            nc  = obj.oned_cdfs{k}.num_nodes;
-            pk  = reshape(sum( reshape((F{k-1}*T{k}).*(drl*T{k}), n*nc, []), 2), n, nc)';
-            % the first term
-            J(k,ind) = J(k,ind) + reshape(eval_cdf_deri(obj.oned_cdfs{k}, pk, r(k,:)), 1, []);
+        if j < d % skip the (d,d) element
+            % derivative of the FTT
+            drl = block_ftt_d{j};
+            % derivative of the reference
+            drr = gr_ref(j,:);
             %
-            if k < d
-                jj  = reshape(reshape(1:rkm*n, rkm, n)', [], 1);
-                ii  = repmat((1:n)', 1, rkm);
-                B   = sparse(ii(:), jj(:), drl(:), n, rkm*n);
-                % the second term, for the d(k+1)/dj term
-                mrl = B*block_mar{k};
-                J(k+1,ind) = J(k+1,ind) - sum(G{k}.*mrl,2)'.*z(k+1,:);
-                % acumulate
-                drl = B*block_ftt{k};
+            % derivative of the FTT, 2nd term, for the d(j+1)/dj term
+            mrl = SIRT.eval_oned_core_213_deri(obj.oneds{j}, obj.ys{j}, r(j,:));
+            if j > 1
+                rjm = size(obj.cores{j}, 1);
+                jj  = reshape(reshape(1:rjm*n, rjm, n)', [], 1);
+                ii  = repmat((1:n)', 1, rjm);
+                B   = sparse(ii(:), jj(:), F{j-1}(:), n, rjm*n);
+                drl = B*drl;
+                mrl = B*mrl;
+                %
+                drr = drr.*prod(fr_ref(1:j-1,:),1);
             end
-            J(k,ind) = 2*J(k,ind)./Fm{k-1};
+            % first sub, the second term, for the d(j+1)/dj term
+            J(j+1,ind) = J(j+1,ind) - 2*sum(G{j}.*mrl,2)'.*z(j+1,:);
+            % reference in the second term
+            J(j+1,ind) = J(j+1,ind) - obj.tau*(drr.*z(j+1,:));
+            %
+            for k = (j+1):d 
+                % accumulate the j-th block and ealuate the integral
+                rkm = size(obj.cores{k}, 1);
+                nc  = obj.oned_cdfs{k}.num_nodes;
+                pk  = reshape(sum( reshape((F{k-1}*T{k}).*(drl*T{k}), n*nc, []), 2), n, nc)';
+                % the first term
+                J(k,ind) = J(k,ind) + 2*reshape(eval_int_deri(obj.oned_cdfs{k}, pk, r(k,:)), 1, []);
+                % reference in the first term
+                J(k,ind) = J(k,ind) + obj.tau*(drr.*zr_ref(k,:)); 
+                %
+                if k < d
+                    %
+                    jj  = reshape(reshape(1:rkm*n, rkm, n)', [], 1);
+                    ii  = repmat((1:n)', 1, rkm);
+                    B   = sparse(ii(:), jj(:), drl(:), n, rkm*n);
+                    % acumulate
+                    drl = B*block_ftt{k};
+                    % the second term, for the d(k+1)/dj term
+                    mrl = B*block_mar{k};
+                    J(k+1,ind) = J(k+1,ind) - 2*sum(G{k}.*mrl,2)'.*z(k+1,:);
+                    % reference in the second term
+                    drr = drr.*fr_ref(k,:);
+                    J(k+1,ind) = J(k+1,ind) - obj.tau*(drr.*z(k+1,:));
+                end
+                J(k,ind) = J(k,ind)./Fm{k-1};
+            end
         end
         %
     end
@@ -127,7 +153,7 @@ else % from right to left
     %
     Fm = cell(d,1); % accumulated ftt
     for k = 1:d
-        Fm{k} = sum(G{k}.^2, 1);
+        Fm{k} = sum(G{k}.^2, 1) + obj.tau*prod(fr_ref(k:d,:),1);
     end
     %
     % j is the index of the coordinate of differentiation
@@ -141,43 +167,55 @@ else % from right to left
             J(j,ind) = Fm{j}./Fm{j+1};
         end
         %
-        % derivative of the FTT
-        drg = block_ftt_d{j}';
-        % derivative of the FTT, 2nd term, for the d(j+1)/dj term
-        mrg = SIRT.eval_oned_core_231_deri(obj.oneds{j}, obj.ys{j}, r(j,:))';
-        if j < d
-            rj  = size(obj.cores{j}, 3);
-            ii  = reshape(1:rj*n, [], 1);
-            jj  = reshape(repmat(1:n, rj, 1), [], 1);
-            B   = sparse(ii, jj, F{j+1}(:), rj*n, n);
-            drg = drg*B;
-            mrg = mrg*B;
-        end
-        if j > 1
-            J(j-1,ind) = J(j-1,ind) - sum(G{j}.*mrg,1).*z(j-1,:);
-        end
-        %
-        for k = (j-1):-1:1
-            % accumulate the j-th block and ealuate the integral
-            rk  = size(obj.cores{k}, 3);
-            nc  = obj.oned_cdfs{k}.num_nodes;
-            pk  = reshape(sum(reshape((T{k}*F{k+1}).*(T{k}*drg), [], nc*n), 1), nc, n);
-            % the first term
-            J(k,ind) = J(k,ind) + reshape(eval_cdf_deri(obj.oned_cdfs{k}, pk, r(k,:)), 1, []);
-            %
-            if k > 1
-                ii  = reshape(1:rk*n, [], 1);
-                jj  = reshape(repmat(1:n, rk, 1), [], 1);
-                B   = sparse(ii, jj, drg(:), rk*n, n);
-                % the second term, for the d(k+1)/dj term
-                mrg = block_mar{k}'*B;
-                J(k-1,ind) = J(k-1,ind) - sum(G{k}.*mrg,1).*z(k-1,:);
-                % acumulate
-                drg = block_ftt{k}'*B;
+        if j > 1 % skip the (1,1) element
+            % derivative of the FTT
+            drg = block_ftt_d{j}';
+            % derivative of the reference
+            drr = gr_ref(j,:);
+            % derivative of the FTT, 2nd term, for the d(j+1)/dj term
+            mrg = SIRT.eval_oned_core_231_deri(obj.oneds{j}, obj.ys{j}, r(j,:))';
+            if j < d
+                rj  = size(obj.cores{j}, 3);
+                ii  = reshape(1:rj*n, [], 1);
+                jj  = reshape(repmat(1:n, rj, 1), [], 1);
+                B   = sparse(ii, jj, F{j+1}(:), rj*n, n);
+                drg = drg*B;
+                mrg = mrg*B;
+                %
+                drr = drr.*prod(fr_ref((j+1):d,:),1);
             end
-            J(k,ind) = 2*J(k,ind)./Fm{k+1};
+            % first super, the second term, for the d(j-1)/dj term
+            J(j-1,ind) = J(j-1,ind) - 2*sum(G{j}.*mrg,1).*z(j-1,:);
+            % reference in the second term
+            J(j-1,ind) = J(j-1,ind) - obj.tau*(drr.*z(j-1,:));
+            %
+            for k = (j-1):-1:1
+                % accumulate the j-th block and evaluate the integral
+                rk  = size(obj.cores{k}, 3);
+                nc  = obj.oned_cdfs{k}.num_nodes;
+                pk  = reshape(sum(reshape((T{k}*F{k+1}).*(T{k}*drg), [], nc*n), 1), nc, n);
+                % the first term
+                J(k,ind) = J(k,ind) + 2*reshape(eval_int_deri(obj.oned_cdfs{k}, pk, r(k,:)), 1, []);
+                % reference in the first term
+                J(k,ind) = J(k,ind) + obj.tau*(drr.*zr_ref(k,:)); 
+                %
+                if k > 1
+                    ii  = reshape(1:rk*n, [], 1);
+                    jj  = reshape(repmat(1:n, rk, 1), [], 1);
+                    B   = sparse(ii, jj, drg(:), rk*n, n);
+                    % acumulate
+                    drg = block_ftt{k}'*B;
+                    % the second term, for the d(k+1)/dj term
+                    mrg = block_mar{k}'*B;
+                    J(k-1,ind) = J(k-1,ind) - 2*sum(G{k}.*mrg,1).*z(k-1,:);
+                    % reference in the second term
+                    drr = drr.*fr_ref(k,:);
+                    J(k-1,ind) = J(k-1,ind) - obj.tau*(drr.*z(k-1,:));
+                end
+                J(k,ind) = J(k,ind)./Fm{k+1};
+            end
+            %
         end
-        %
     end
 end
 end

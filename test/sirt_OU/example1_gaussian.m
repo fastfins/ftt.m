@@ -45,9 +45,17 @@ for i = 1:4
     end
 end
 
+%{
+for i = 1:4
+    for j = 1:3
+        irts{i,j}.tau = irts{i,j}.l2_err.^2;
+    end
+end
+%}
+
 % sample
 z = rand(d, 1E4);
-for i = 1:2
+for i = 1:4
     for j = 1:3
         figure
         tic;[r,f] = eval_irt(irts{i,j}, z);toc

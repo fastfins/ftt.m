@@ -5,7 +5,7 @@
 % have an innner product weighted by poly.mass_R' * poly.mass_R, where
 % poly.mass_R is the upper triangular Choleskt factor of the mass matrix
 %
-poly = Lagrangep(2, 5, [-4, 4], 'ghost_size', 1, 'bc', 'Dirichlet');
+poly = Lagrangep(2, 5, [-4, 4]);
 
 npts = 200;
 

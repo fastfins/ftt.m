@@ -15,7 +15,7 @@ if nargout == 1
     % compute the minus log likelihood and minus log prior
     [mllkds,mlps] = func(x);
     % compute the reference density at z
-    logfz = log_pdf(obj.diag, z);
+    logfz = log_joint_pdf(obj.ref, z);
     %f = -(mllkds+mlps) - logft + logfz;
     f = (mllkds+mlps) + logft - logfz;
 else
@@ -23,7 +23,7 @@ else
     % compute the minus log likelihood and minus log prior
     [mllkds,mlps,gmllkds,gmlps] = func(x);
     % compute the reference density at z
-    [logfz,glfz] = log_pdf(obj.diag, z);
+    [logfz,glfz] = log_joint_pdf(obj.ref, z);
     f = (mllkds+mlps) + logft - logfz;
     g = DIRT.backtrack(Juz, Jux, (gmllkds+gmlps)) + gz - glfz;
 end

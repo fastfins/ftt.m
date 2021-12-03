@@ -21,6 +21,7 @@ classdef Lagrange1 < Piecewise
                 obj.mass(ind,ind) = obj.mass(ind,ind) + obj.local_mass*obj.jac;
                 obj.weights(ind)  = obj.weights(ind)  + obj.local_weights(:)*obj.jac;
             end
+            %{
             % modify the boundary layer
             switch obj.bc
                 case{'Neumann'}
@@ -37,7 +38,7 @@ classdef Lagrange1 < Piecewise
             obj.mass(end,end)   = obj.mass(end,end) + tmp_m;
             obj.weights(1)      = obj.weights(1) + tmp_w;
             obj.weights(end)    = obj.weights(end) + tmp_w;
-            %
+            %}
             obj.mass    = sparse(0.5*(obj.mass+obj.mass'));
             obj.mass_R  = chol(obj.mass);
             obj.int_W   = reshape(obj.weights, 1, []);
@@ -104,6 +105,37 @@ classdef Lagrange1 < Piecewise
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         function bas = eval_basis(obj, x)
+            n   = length(x);
+            mask_left   = obj.domain(1) > x(:);
+            mask_right  = obj.domain(2) < x(:);
+            mask_inside = ~(mask_left | mask_right);
+            %{
+            if sum(mask_left | mask_right)
+                disp('warning: points outside of the domain')
+            end
+            %}
+            if sum(mask_inside) > 0
+                tmp_x   = x(mask_inside);
+                % find the element indices for each x
+                ind = ceil((tmp_x-obj.domain(1))./obj.elem_size);
+                ind(ind==0) = 1;
+                %
+                % map each x into local coordinate
+                local_x = (reshape(tmp_x, 1, []) - reshape(obj.grid(ind), 1, []))./obj.elem_size;
+                %left:  ind: 1-local_x
+                %right: ind+1: local_x
+                %
+                coi = [ind(:); ind(:)+1];
+                roi = repmat(reshape(find(mask_inside),[],1), 2, 1);
+                val = [1-local_x(:); local_x(:)];
+                bas = sparse(roi, coi, val, n, obj.num_nodes);
+            else
+                bas = spalloc(n, obj.num_nodes,0);
+            end
+        end
+        
+        %{
+        function bas = eval_basis(obj, x)
             tau = eps; % safe guard thershold
             n   = length(x);
             if sum(obj.domain(1)-tau > x | obj.domain(2)+tau < x)
@@ -144,9 +176,33 @@ classdef Lagrange1 < Piecewise
             end
             bas = sparse(roi, coi, val, n, obj.num_nodes);
         end
-        
+        %}
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
+        function bas = eval_basis_deri(obj, x)
+            n   = length(x);
+            mask_left   = obj.domain(1) > x(:);
+            mask_right  = obj.domain(2) < x(:);
+            mask_inside = ~(mask_left | mask_right);
+            if sum(mask_left | mask_right)
+                disp('warning: points outside of the domain')
+            end
+            if sum(mask_inside) > 0
+                tmp_x   = x(mask_inside);
+                % find the element indices for each x
+                ind = ceil((tmp_x-obj.domain(1))./obj.elem_size);
+                ind(ind==0) = 1;
+                %
+                coi = [ind(:); ind(:)+1];
+                roi = repmat(reshape(find(mask_inside),[],1), 2, 1);
+                val = [-ones(length(ind), 1)./obj.elem_size; ones(length(ind),1)./obj.elem_size];
+                bas = sparse(roi, coi, val, n, obj.num_nodes);
+            else
+                bas = spalloc(n, obj.num_nodes,0); 
+            end
+        end
+        
+        %{
         function bas = eval_basis_deri(obj, x)
             tau = eps; % safe guard thershold
             n   = length(x);
@@ -183,5 +239,6 @@ classdef Lagrange1 < Piecewise
             end
             bas = sparse(roi, coi, val, n, obj.num_nodes);
         end
+        %}
     end
 end

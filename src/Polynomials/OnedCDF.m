@@ -23,7 +23,7 @@ classdef OnedCDF
     methods (Abstract)
         invert_cdf(obj)
         eval_cdf(obj)
-        eval_cdf_deri(obj)
+        eval_int_deri(obj)
     end
     
     methods

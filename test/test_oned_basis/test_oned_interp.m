@@ -49,7 +49,7 @@ plot(xs, lf, 'linewidth', 2)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figure
-def = Lagrangep(5, 5, [-1.5, 1.5], 'bc', 'Neumann', 'ghost_size', 0.1);
+def = Lagrangep(5, 5, [-1.5, 1.5]);
 plot(eval_basis(def, def.nodes))
 
 figure
@@ -59,7 +59,7 @@ for i = 1:size(bs,2), plot(xs, bs(:,i)); set(gca,'ylim', [-1,1]); title(num2str(
 
 %%%
 
-def = Lagrangep(10, 3, [-1.5, 1.5], 'bc', 'Neumann', 'ghost_size', 0.1);
+def = Lagrangep(10, 3, [-1.5, 1.5]);
 plot(eval_basis(def, def.nodes))
 
 figure
@@ -70,7 +70,7 @@ for i = 1:size(bs,2), plot(xs, bs(:,i)); set(gca,'ylim', [-1,1]); title(num2str(
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def = Lagrangep(10, 5, [-1.5, 1.5], 'bc', 'Dirichlet', 'ghost_size', 0.1);
+def = Lagrangep(10, 5, [-1.5, 1.5]);
 
 xs = linspace(def.domain(1), def.domain(2), 1000);
 % test interpolation property
@@ -82,7 +82,7 @@ plot(xs, f(xs), xs, fi, def.nodes,f(def.nodes(:)), 'o')
 
 
 
-def = Lagrangep(10, 5, [-5, -2], 'bc', 'Neumann', 'ghost_size', 0.1);
+def = Lagrangep(10, 5, [-5, -2]);
 xs = linspace(def.domain(1), def.domain(2), 1000);
 f = @(y) 1./log(-y) + sin(y*5*pi);
 fi = eval(def, f(def.nodes), xs);
@@ -122,7 +122,7 @@ f = @(y) 1./log(abs(y)+0.01) + sin(y*5*pi);
 a = integral(f, 2,4);
 for i = 1:5
     for j = 1:6
-        def = Lagrangep(2+j, 1+i, [2, 4], 'bc', 'Neumann');
+        def = Lagrangep(2+j, 1+i, [2, 4]);
         err(i,j) = abs(def.int_W*f(def.nodes(:)) - a);
     end
 end

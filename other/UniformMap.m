@@ -7,12 +7,14 @@ classdef UniformMap < DiagonalMap
         end
         
         function  z = eval_icdf(obj, u)
+            u(u > 1-eps) = 1-eps;
+            u(u < eps) = eps;
             z = u .* (max(obj.domain) - min(obj.domain)) + min(obj.domain);
         end
         
         function [lf,glf] = log_pdf(obj, z)
             lf = -log(max(obj.domain) - min(obj.domain)) .* ones(1, size(z,2)); 
-            lf(any((z<min(obj.domain))|(z>max(obj.domain)),1)) = -inf;
+            %lf(any((z<min(obj.domain))|(z>max(obj.domain)),1)) = -inf;
             glf = zeros(1, size(z,2)); 
         end
         

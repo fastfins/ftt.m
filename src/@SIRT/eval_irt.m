@@ -13,6 +13,7 @@ d = length(obj.cores);
 r = zeros(dz,n);
 
 if nargout < 3
+    fr_ref = ones(1,n);
     if obj.int_dir > 0 % from left to right
         frl = ones(n,1);
         for k = 1:dz
@@ -21,7 +22,7 @@ if nargout < 3
             T1  = reshape( SIRT.eval_oned_core_213(obj.oneds{k}, obj.ys{k}, obj.oned_cdfs{k}.nodes(:)), rkm, []);
             pk  = reshape(sum(reshape(frl*T1, n*nc, []).^2, 2), n, nc)';
             %
-            r(k,:)  = invert_cdf(obj.oned_cdfs{k}, pk, z(k,:));
+            r(k,:)  = invert_cdf(obj.oned_cdfs{k}, pk, obj.tau*fr_ref, obj.oned_refs{k}, z(k,:));
             %
             % evaluate the updated basis function
             T2  = SIRT.eval_oned_core_213(obj.oneds{k}, obj.cores{k}, r(k,:));
@@ -30,11 +31,14 @@ if nargout < 3
             B   = sparse(ii(:), jj(:), frl(:), n, rkm*n);
             frl = B*T2;
             frl(isnan(frl)) = 0;
+            %
+            fk_ref = eval_pdf(obj.oned_refs{k}, r(k,:));
+            fr_ref = fr_ref.*fk_ref;
         end
         if dz < d
-            f = sum((frl*obj.ms{dz+1}).^2, 2)'/obj.z;
+            f = sum((frl*obj.ms{dz+1}).^2, 2)';
         else
-            f = frl'.^2/obj.z;
+            f = frl'.^2;
         end
     else % from right to left
         frg = ones(1,n);
@@ -46,7 +50,7 @@ if nargout < 3
             T1  = reshape( SIRT.eval_oned_core_213(obj.oneds{k}, obj.ys{k}, obj.oned_cdfs{k}.nodes(:)), [], rk);
             pk  = reshape(sum(reshape(T1*frg, [], nc*n).^2, 1), nc, n);
             %
-            r(ck,:)  = invert_cdf(obj.oned_cdfs{k}, pk, z(ck,:));
+            r(ck,:)  = invert_cdf(obj.oned_cdfs{k}, pk, obj.tau*fr_ref, obj.oned_refs{k}, z(ck,:));
             %
             % evaluate the updated basis function
             T2  = SIRT.eval_oned_core_231(obj.oneds{k}, obj.cores{k}, r(ck,:));
@@ -55,15 +59,20 @@ if nargout < 3
             B   = sparse(ii, jj, frg(:), rk*n, n);
             frg = T2'*B;
             frg(isnan(frg)) = 0;
+            %
+            fk_ref = eval_pdf(obj.oned_refs{k}, r(ck,:));
+            fr_ref = fr_ref.*fk_ref;
         end
         if dz < d
-            f = sum((obj.ms{ie-1}*frg).^2, 1)/obj.z;
+            f = sum((obj.ms{ie-1}*frg).^2, 1);
         else
-            f = frg.^2/obj.z;
+            f = frg.^2;
         end
-        
     end
-else
+    f = (f+obj.tau*fr_ref)/obj.z;
+else 
+    fr_ref = ones(1,n);
+    gr_ref = ones(dz,n);
     if dz == obj.d
         fls = cell(obj.d,1);
         frs = cell(obj.d,1);
@@ -76,7 +85,7 @@ else
                 T1  = reshape( SIRT.eval_oned_core_213(obj.oneds{k}, obj.ys{k}, obj.oned_cdfs{k}.nodes(:)), rkm, []);
                 pk  = reshape(sum(reshape(frl*T1, n*nc, []).^2, 2), n, nc)';
                 %
-                r(k,:)  = invert_cdf(obj.oned_cdfs{k}, pk, z(k,:));
+                r(k,:)  = invert_cdf(obj.oned_cdfs{k}, pk, obj.tau*fr_ref, obj.oned_refs{k}, z(k,:));
                 %
                 % evaluate the updated basis function
                 T2  = SIRT.eval_oned_core_213(obj.oneds{k}, obj.cores{k}, r(k,:));
@@ -86,6 +95,10 @@ else
                 frl = B*T2;
                 frl(isnan(frl)) = 0;
                 fls{k} = frl;
+                %
+                [fk_ref, gk_ref] = eval_pdf(obj.oned_refs{k}, r(k,:));
+                fr_ref = fr_ref.*fk_ref;
+                gr_ref(k,:) = gk_ref;
             end
             %
             frg = ones(1,n);
@@ -110,7 +123,7 @@ else
                 T1  = reshape( SIRT.eval_oned_core_213(obj.oneds{k}, obj.ys{k}, obj.oned_cdfs{k}.nodes(:)), [], rk);
                 pk  = reshape(sum(reshape(T1*frg, [], nc*n).^2, 1), nc, n);
                 %
-                r(k,:)  = invert_cdf(obj.oned_cdfs{k}, pk, z(k,:));
+                r(k,:)  = invert_cdf(obj.oned_cdfs{k}, pk, obj.tau*fr_ref, obj.oned_refs{k}, z(k,:));
                 %
                 % evaluate the updated basis function
                 T2  = SIRT.eval_oned_core_231(obj.oneds{k}, obj.cores{k}, r(k,:));
@@ -120,6 +133,10 @@ else
                 frg = T2'*B;
                 frg(isnan(frg)) = 0;
                 frs{k} = frg;
+                %
+                [fk_ref, gk_ref] = eval_pdf(obj.oned_refs{k}, r(k,:));
+                fr_ref = fr_ref.*fk_ref;
+                gr_ref(k,:) = gk_ref;
             end
             %
             frl = ones(n,1);
@@ -157,10 +174,15 @@ else
                 g(k,:) = sum((Bl*D)'.*frs{k+1}, 1);
             end
         end
-        g = 2*(g./fsqrt);
+        f = fsqrt.^2 + obj.tau*fr_ref; % before normalization
+        %
+        g = 2*(g.*fsqrt) + obj.tau*gr_ref;
+        g = g./f;
         g(isnan(g)) = 0;
         g(isinf(g)) = 0;
-        f = fsqrt.^2/obj.z;
+        %
+        % normalize at the end
+        f = f/obj.z;
     else
         warning('grad is not implemented for marginals')
     end

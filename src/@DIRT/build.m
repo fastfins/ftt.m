@@ -19,26 +19,14 @@ beta_factor = 1.1;
     end
 %}
 
-% reference samples
 %{
-if obj.qmc_flag
-    l = ceil(log2(obj.n_samples));
-    opts.nsamples = 2^l;
-    zs = qmcnodes(opts.np,l);
-else
-    zs = rand(obj.d, obj.n_samples);
-end
-%}
-
-ns = obj.n_samples+obj.n_debugs;
-zs = rand(obj.d, ns);
-% samples = eval_icdf(obj.diag, zs);
-
 % oneds{1} should always be a cell for debug samples to work
 if (~isa(oneds{1}, 'cell'))
     oneds{1} = repmat(oneds(1), 1, obj.d);
 end
+%}
 
+%{
 % Zeroth layer must be in the Lebesgue measure
 samples = zeros(obj.d, ns);
 poly_counter = 1;
@@ -50,7 +38,10 @@ for i=1:obj.d
         poly_counter = numel(oneds{1});
     end    
 end
+%}
 
+
+ns = obj.n_samples+obj.n_debugs;
 
 beta = 0;
 obj.n_evals = 0;
@@ -60,10 +51,26 @@ obj.logz = 0;
 poly_counter = 1;
 while obj.n_layers < obj.max_layers
     %
+    % reference samples
+    if obj.n_layers == 0
+        samples = zeros(obj.d, ns);
+        for i=1:obj.d
+            samples(i,:) = sample_domain(oneds{1}, ns);
+        end
+        ref = set_domain(obj.ref, oneds{poly_counter}.domain);
+    elseif obj.n_layers == 1
+        samples = random(obj.ref, obj.d, ns);
+        ref = obj.ref;
+    end
     % evaluate the map and the target function
-    [x,logfx] = eval_irt(obj, samples);
+    if obj.n_layers == 0
+        x = samples;
+        logfx = zeros(1,size(x,2));
+    else
+        [x,logfx] = eval_irt(obj, samples);
+    end
     [mllkds, mlps] = func(x);
-    obj.n_evals = obj.n_evals + ns;
+    obj.n_evals = obj.n_evals + size(x,2);
     % determine the new temperature
     if obj.adapt_beta
         beta_p = beta;
@@ -108,7 +115,7 @@ while obj.n_layers < obj.max_layers
     log_weights = -beta*mllkds-mlps-logfx;
     log_weights = log_weights - max(log_weights);
     %
-    ind = datasample(1:ns, ns, 'weights', exp(log_weights));
+    ind = datasample(1:ns, ns, 'weights', exp(log_weights),'Replace',false);
     %
     % Ratio function for current iteration
     % if FTT does not use sqrt_flag, then we should compute sqrt of the
@@ -121,15 +128,19 @@ while obj.n_layers < obj.max_layers
         %obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
         
         if obj.n_layers > 1
-            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, obj.irts{obj.n_layers}, sirt_opt, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
+            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, obj.irts{obj.n_layers}, sirt_opt, ...
+                'reference', ref, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
         else
-            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
+            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, ...
+                'reference', ref, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
         end
     else
         if obj.n_layers > 1
-            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, obj.irts{obj.n_layers}, sirt_opt, 'sample_x', samples(:,ind));
+            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, obj.irts{obj.n_layers}, sirt_opt, ...
+                'reference', ref, 'sample_x', samples(:,ind));
         else
-            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, 'sample_x', samples(:,ind));
+            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, ...
+                'reference', ref, 'sample_x', samples(:,ind));
         end
     end
     obj.logz = obj.logz + log(obj.irts{obj.n_layers+1}.z);
@@ -145,11 +156,6 @@ while obj.n_layers < obj.max_layers
     % stop
     if abs(beta - 1) < 1E-10
         break;
-    end
-    
-    if obj.n_layers == 1
-        % Debugging and adaptation samples must be from reference now
-        samples = eval_icdf(obj.diag, zs);
     end
 end
 

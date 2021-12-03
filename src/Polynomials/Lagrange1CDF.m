@@ -7,6 +7,32 @@ classdef Lagrange1CDF < Lagrange1 & PiecewiseCDF
     
     methods
         function obj = Lagrange1CDF(poly, varargin)
+            obj@Lagrange1(poly.num_elems, poly.domain);
+            obj@PiecewiseCDF(varargin{:});
+            %
+            obj.nodes = linspace(obj.domain(1), obj.domain(2), obj.num_elems*2+1);
+            obj.num_nodes = length(obj.nodes);
+            %
+            dhh = obj.elem_size/2;
+            %
+            ii = zeros(3,obj.num_elems);
+            jj = zeros(3,obj.num_elems);
+            %
+            % L = [1, 0, 0; 1, 1, 0; 1, 2, 1];
+            % U = [1, 0, 0; 0, dhh, dhh^2; 0, 0, dhh^2*2];
+            % LU = Vandermore
+            % Vandermore = [1, 0, 0; 1, dhh, dhh^2; 1, dhh*2, 4*dhh^2];
+            obj.iV = [1, 0, 0; -3/(2*dhh), 2/dhh, -1/(2*dhh); 1/(2*dhh^2), -1/dhh^2, 1/(2*dhh^2)];
+            for i = 1:obj.num_elems
+                ind = (1:3)+(i-1)*3;
+                ii(:,i) = ind;
+                jj(:,i) = (i-1)*2 + (1:3);
+            end
+            obj.T = sparse(ii(:), jj(:), ones(obj.num_elems*3,1), obj.num_elems*3, obj.num_nodes);
+        end
+        
+        %{
+        function obj = Lagrange1CDF(poly, varargin)
             obj@Lagrange1(poly.num_elems, poly.domain, 'ghost_size', poly.gs, 'bc', poly.bc);
             obj@PiecewiseCDF(varargin{:});
             %
@@ -31,10 +57,40 @@ classdef Lagrange1CDF < Lagrange1 & PiecewiseCDF
             obj.T = sparse(ii(:), jj(:), ones(obj.num_elems*3,1), obj.num_elems*3, obj.num_nodes);
             %obj.TT = kron(speye(obj.num_elems),sparse(iV))*T;
         end
-        
+        %}
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
+        
         function data = pdf2cdf(obj, pdf)
+            data.size = size(pdf,2);
+            if data.size > 1
+                % 1st coord: local, 2nd coord: elems, 3rd: pdfs
+                data.poly_coef = obj.iV*reshape(obj.T*pdf, 3, []);
+                % permute: 1st coord: local, 2nd coord: pdfs, 3rd: elems
+                % data.poly_coef = permute(reshape(obj.TT*pdf, 3, obj.num_elems, []), [1,3,2]);
+                %
+                cdf_elems = reshape([obj.elem_size, obj.elem_size^2/2, obj.elem_size^3/3]*reshape(data.poly_coef, 3, []), obj.num_elems, []);
+                %
+                data.cdf_poly_grid  = zeros(obj.num_elems+1, data.size);
+                data.cdf_poly_grid(2:end,:) = cumsum(cdf_elems,1);
+                %
+                data.poly_norm = data.cdf_poly_grid(end,:);
+                %
+            else
+                data.poly_coef = obj.iV*reshape(obj.T*pdf, 3, []);
+                %
+                cdf_elems = [obj.elem_size, obj.elem_size^2/2, obj.elem_size^3/3]*reshape(data.poly_coef, 3, []);
+                %
+                data.cdf_poly_grid  = zeros(obj.num_elems+1, 1);
+                data.cdf_poly_grid(2:end) = cumsum(cdf_elems);
+                %
+                data.poly_norm = data.cdf_poly_grid(end);
+                %
+            end
+        end
+        
+        %{
+        function data = pdf2cdf(obj, pdf, rk, ref)
             data.size = size(pdf,2);
             if data.size > 1
                 %{
@@ -45,22 +101,22 @@ classdef Lagrange1CDF < Lagrange1 & PiecewiseCDF
                 %}
                 
                 % 1st coord: local, 2nd coord: elems, 3rd: pdfs
-                data.coef = obj.iV*reshape(obj.T*pdf, 3, []);
+                data.poly_coef = obj.iV*reshape(obj.T*pdf, 3, []);
                 % permute: 1st coord: local, 2nd coord: pdfs, 3rd: elems
-                % data.coef = permute(reshape(obj.TT*pdf, 3, obj.num_elems, []), [1,3,2]);
+                % data.poly_coef = permute(reshape(obj.TT*pdf, 3, obj.num_elems, []), [1,3,2]);
                 
                 data.pdf_left  = pdf(1,:);
                 data.pdf_right = pdf(end,:);
                 [cdf_left, cdf_right] = pdf2cdf_bnd(obj, data.pdf_left, data.pdf_right);
                 %
                 %cdf_elems = data.A*obj.elem_size + data.B.*(obj.elem_size^2/2) + data.C.*(obj.elem_size^3/3);
-                cdf_elems = reshape([obj.elem_size, obj.elem_size^2/2, obj.elem_size^3/3]*reshape(data.coef, 3, []), obj.num_elems, []);
+                cdf_elems = reshape([obj.elem_size, obj.elem_size^2/2, obj.elem_size^3/3]*reshape(data.poly_coef, 3, []), obj.num_elems, []);
                 %
                 data.cdf_grid  = zeros(obj.num_elems+1, data.size);
                 data.cdf_grid(2:end,:) = cumsum(cdf_elems,1);
                 data.cdf_grid = data.cdf_grid +  cdf_left;
                 %
-                data.norm = data.cdf_grid(end,:) + cdf_right;
+                data.norm_grid = data.cdf_grid(end,:) + cdf_right;
                 %
             else
                 %{
@@ -69,24 +125,27 @@ classdef Lagrange1CDF < Lagrange1 & PiecewiseCDF
                 data.B = reshape(tmp(2,:),[],1);
                 data.C = reshape(tmp(3,:),[],1);
                 %}
-                data.coef = obj.iV*reshape(obj.T*pdf, 3, []);
+                data.poly_coef = obj.iV*reshape(obj.T*pdf, 3, []);
                 
                 data.pdf_left  = pdf(1);
                 data.pdf_right = pdf(end);
                 [cdf_left, cdf_right] = pdf2cdf_bnd(obj, data.pdf_left, data.pdf_right);
                 %
                 %cdf_elems = data.A*obj.elem_size + data.B.*(obj.elem_size^2/2) + data.C.*(obj.elem_size^3/3);
-                cdf_elems = [obj.elem_size, obj.elem_size^2/2, obj.elem_size^3/3]*reshape(data.coef, 3, []);
+                cdf_elems = [obj.elem_size, obj.elem_size^2/2, obj.elem_size^3/3]*reshape(data.poly_coef, 3, []);
                 %
                 data.cdf_grid  = zeros(obj.num_elems+1, 1);
                 data.cdf_grid(2:end) = cumsum(cdf_elems);
                 data.cdf_grid = data.cdf_grid +  cdf_left;
                 %
-                data.norm = data.cdf_grid(end) + cdf_right;
+                data.norm_grid = data.cdf_grid(end) + cdf_right;
                 %
             end
+            data.norm = data.norm_grid + rk;
+            tmp = rk*eval_cdf(ref, obj.grid);
+            data.cdf_sum_grid = data.cdf_grid + tmp;
         end
-        
+        %}
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         function f = eval_int_lag_local(obj, data, ei, mask, r)
@@ -102,15 +161,15 @@ classdef Lagrange1CDF < Lagrange1 & PiecewiseCDF
                 % z = A(:).*r(:) + B(:).*r(:).^2/2 + C(:).*r(:).^3/3;
                 % z = z + cdf(:);
                 %
-                f = sum([r(:), r(:).^2/2, r(:).^3/3].*data.coef(:,ind)', 2) + reshape(data.cdf_grid(jnd),[],1);
+                f = sum([r(:), r(:).^2/2, r(:).^3/3].*data.poly_coef(:,ind)', 2) + reshape(data.cdf_poly_grid(jnd),[],1);
             else
-                f = sum([r(:), r(:).^2/2, r(:).^3/3].*data.coef(:,ei)', 2) + reshape(data.cdf_grid(ei),[],1);
+                f = sum([r(:), r(:).^2/2, r(:).^3/3].*data.poly_coef(:,ei)', 2) + reshape(data.cdf_poly_grid(ei),[],1);
             end
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        function [f,df] = eval_int_lag_local_newton(obj, data, ei, mask, rhs, r)
+        function [f,df] = eval_int_lag_local_deri(obj, data, ei, mask, r)
             r = r - reshape(obj.grid(ei),size(r));
             if data.size > 1
                 coi = find(mask);
@@ -123,23 +182,22 @@ classdef Lagrange1CDF < Lagrange1 & PiecewiseCDF
                 % z = A(:).*r(:) + B(:).*r(:).^2/2 + C(:).*r(:).^3/3;
                 % z = z + cdf(:);
                 %
-                f  = sum([r(:), r(:).^2/2, r(:).^3/3].*data.coef(:,ind)', 2) + reshape(data.cdf_grid(jnd),[],1);
-                df = sum([ones(length(r),1), r(:), r(:).^2].*data.coef(:,ind)', 2);
+                f  = sum([r(:), r(:).^2/2, r(:).^3/3].*data.poly_coef(:,ind)', 2) + reshape(data.cdf_poly_grid(jnd),[],1);
+                df = sum([ones(length(r),1), r(:), r(:).^2].*data.poly_coef(:,ind)', 2);
             else
-                f  = sum([r(:), r(:).^2/2, r(:).^3/3].*data.coef(:,ei)', 2) + reshape(data.cdf_grid(ei),[],1);
-                df = sum([ones(length(r),1), r(:), r(:).^2].*data.coef(:,ei)', 2);
+                f  = sum([r(:), r(:).^2/2, r(:).^3/3].*data.poly_coef(:,ei)', 2) + reshape(data.cdf_poly_grid(ei),[],1);
+                df = sum([ones(length(r),1), r(:), r(:).^2].*data.poly_coef(:,ei)', 2);
             end
-            f = f - rhs;
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        function r = invert_cdf_local(obj, data, ei, mask, rhs)
+        function r = invert_cdf_local(obj, data, rk, ref, ei, mask, rhs)
             %
             a = obj.grid(ei);
             b = obj.grid(ei+1);
             %
-            r = newton(obj, data, ei, mask, rhs(:), a(:), b(:));
+            r = newton(obj, data, rk, ref, ei, mask, rhs(:), a(:), b(:));
             %if sum( r>b(:) | r<a(:) ) ~=0
             %    warning('newton failed')
             %    r = regula_falsi(obj, data, ei, mask, rhs(:), a(:), b(:));

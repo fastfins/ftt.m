@@ -3,24 +3,20 @@ classdef Piecewise < Oned
 %                     Larangep (piecewise high order Lagrange)
 %
 % Constructors:
-%   * Lagrange1(n, domain, 'ghost_size', gs, 'bc', type)
-%   * Lagrangep(order, n, domain, 'ghost_size', gs, 'bc', type)
+%   * Lagrange1(n, domain)
+%   * Lagrangep(order, n, domain)
 %
 %   order       - (Required) order of the polynomial 
 %   n           - (Required) number of elements
 %   domain      - (Optional) default is [0,1]
-%   ghost_size  - The parameter 'ghost_size' specify a boundary layer with
-%                 size gs
-%   bc          - The parameter 'bc' specify the type of the boundary layer
-%                 to either 'Dirichlet' or 'Neumann'. With 'Dirichlet', the
-%                 boudnary layer linearly decays to zero. With 'Neumann',
-%                 the boundary layer takes a constant value.
 %
 % See also PIECEWISECDF
     
     properties
+        %{
         gs % ghostsize
         bc % boundary condition
+        %}        
         grid(:,1) 
         num_elems 
         elem_size 
@@ -29,6 +25,23 @@ classdef Piecewise < Oned
         weights(:,1) 
     end
     
+
+        
+%{      
+% Constructors:
+%   * Lagrange1(n, domain, 'ghost_size', gs, 'bc', type)
+%   * Lagrangep(order, n, domain, 'ghost_size', gs, 'bc', type)
+%
+%   order       - (Required) order of the polynomial 
+%   n           - (Required) number of elements
+%   domain      - (Optional) default is [0,1]  
+%   ghost_size  - The parameter 'ghost_size' specify a boundary layer with
+%                 size gs
+%   bc          - The parameter 'bc' specify the type of the boundary layer
+%                 to either 'Dirichlet' or 'Neumann'. With 'Dirichlet', the
+%                 boudnary layer linearly decays to zero. With 'Neumann',
+%                 the boundary layer takes a constant value.
+        
     methods (Static)
         function [order,num_elems,domain,bc,gs] = process_input(order, num_elems, varargin)
             defaultDomain = [0, 1];
@@ -67,12 +80,33 @@ classdef Piecewise < Oned
             end
         end
     end
+%}
     
     methods
         function obj = Piecewise(order, num_elems, varargin)
-            [obj.order,obj.num_elems,obj.domain,obj.bc,obj.gs] = ...
-                Piecewise.process_input(order, num_elems, varargin{:});
-            obj.grid = linspace(obj.domain(1)+obj.gs, obj.domain(2)-obj.gs, obj.num_elems+1);
+            %[obj.order,obj.num_elems,obj.domain,obj.bc,obj.gs] = ...
+            %    Piecewise.process_input(order, num_elems, varargin{:});
+            %
+            defaultDomain = [0, 1];
+            %
+            p = inputParser;
+            % valid order
+            validScalarPosNum = @(x) isnumeric(x) && isscalar(x) && (x >= 0);
+            addRequired(p,'order',validScalarPosNum);
+            % number of lagrange elements
+            addRequired(p,'num_elems',@(x)isnumeric(x) && isscalar(x) && (x >= 1));
+            % validate domain
+            validDomain = @(x) length(x)==2 && x(2)>x(1);
+            addOptional(p,'domain',defaultDomain,validDomain);
+            %
+            p.KeepUnmatched = true;
+            parse(p,order,num_elems,varargin{:});
+            %
+            obj.order = p.Results.order;
+            obj.num_elems = p.Results.num_elems;
+            obj.domain = p.Results.domain;   
+            obj.grid = linspace(obj.domain(1), obj.domain(2), obj.num_elems+1);
+            %obj.grid = linspace(obj.domain(1)+obj.gs, obj.domain(2)-obj.gs, obj.num_elems+1);
             obj.elem_size = (obj.grid(end)-obj.grid(1))/double(obj.num_elems);
         end
         

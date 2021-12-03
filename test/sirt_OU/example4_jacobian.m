@@ -41,6 +41,7 @@ end
 z = rand(d, 1E2);
 for i = 1:4
     for j = 1:2
+        irts{i,j} = set_defensive(irts{i,j}, 1E-2);
         debug_jac(irts{i,j}, z, 1);
         debug_jac(irts{i,j}, z, -1);
     end

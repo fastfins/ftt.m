@@ -14,7 +14,7 @@ polys{2} = Fourier(5, [-4, 4]);
 % have an innner product weighted by poly.mass_R' * poly.mass_R, where
 % poly.mass_R is the upper triangular Choleskt factor of the mass matrix
 %
-polys{3} = Lagrange1(10, [-4, 4], 'ghost_size', 0, 'bc', 'Neumann');
+polys{3} = Lagrange1(10, [-4, 4]);
 polys{4} = Lagrangep(2, 5, [-4, 4]);
 
 npts = 100;

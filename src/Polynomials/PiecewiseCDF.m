@@ -25,7 +25,7 @@ classdef PiecewiseCDF < OnedCDF
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
+        %{
         function [cdf_left, cdf_right] = pdf2cdf_bnd(obj, pdf_left, pdf_right)
             switch obj.bc
                 case{'Dirichlet'}
@@ -36,9 +36,41 @@ classdef PiecewiseCDF < OnedCDF
                     cdf_right = pdf_right*obj.gs;
             end
         end
-        
+        %}
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
+        function z = eval_int_lag(obj, data, r)
+            if data.size > 1 && data.size ~= length(r)
+                error('Error: dimenion mismatch')
+            end
+            [mxi, nxi] = size(r);
+            r = reshape(r,[],1);
+            z = zeros(size(r));
+            % index to locate the element
+            ei = sum(reshape(obj.grid,1,[]) < r,2)';
+            mask1 = ei==0;
+            %{
+            if sum(mask1) > 0
+                
+                z(mask1) = 0;
+            end
+            %}
+            mask2 = ei==(obj.num_elems+1);
+            if sum(mask2) > 0
+                if data.size ==1
+                    z(mask2) = data.poly_norm;
+                else
+                    z(mask2) = data.poly_norm(mask2);
+                end
+            end
+            mask3 = ~mask1 & ~mask2;
+            if sum(mask3) > 0
+                z(mask3) = eval_int_lag_local(obj, data, ei(mask3), mask3, r(mask3));
+            end
+            z = reshape(z, mxi, nxi);
+        end
+        
+        %{
         function z = eval_int_lag(obj, data, r)
             if data.size > 1 && data.size ~= length(r)
                 error('Error: dimenion mismatch')
@@ -74,15 +106,15 @@ classdef PiecewiseCDF < OnedCDF
                 switch obj.bc
                     case{'Dirichlet'}
                         if data.size == 1
-                            z(mask2) = data.norm - 0.5*(tmp.^2)*data.pdf_right;
+                            z(mask2) = data.norm_grid - 0.5*(tmp.^2)*data.pdf_right;
                         else
-                            z(mask2) = data.norm(mask2)' - 0.5*(tmp.^2).*data.pdf_right(mask2)';
+                            z(mask2) = data.norm_grid(mask2)' - 0.5*(tmp.^2).*data.pdf_right(mask2)';
                         end
                     otherwise
                         if data.size == 1
-                            z(mask2) = data.norm - tmp*data.pdf_right;
+                            z(mask2) = data.norm_grid - tmp*data.pdf_right;
                         else
-                            z(mask2) = data.norm(mask2)' - tmp.*data.pdf_right(mask2)';
+                            z(mask2) = data.norm_grid(mask2)' - tmp.*data.pdf_right(mask2)';
                         end
                 end
             end
@@ -92,50 +124,132 @@ classdef PiecewiseCDF < OnedCDF
             end
             z = reshape(z, mxi, nxi);
         end
-        
+        %}
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        function z = eval_cdf(obj, pk, r)
+        function z = eval_cdf(obj, pk, rk, ref, r)
             if (sum(pk(:)<0)>0)
                 disp(['negative pdf ' num2str(sum(pk(:)<0))])
             end
+            r = reshape(r,[],1);
             data = pdf2cdf(obj, pk);
             z = eval_int_lag(obj, data, r);
             %
-            if numel(data.norm) > 1
-                ind1 = data.norm > 1E-12;
-                ind2 = ~ind1;
-                z(ind1) = z(ind1)./data.norm(ind1);
-                %
-                jnd1 = z(ind2) < 1E-12;
-                jnd2 = ~jnd1;
-                %
-                z(ind2(jnd1)) = 0;
-                z(ind2(jnd2)) = 1;
+            z_ref = eval_cdf(ref, r);
+            z = z + z_ref.*reshape(rk,[],1);
+            cdf_norm = data.poly_norm + rk;
+            %
+            if numel(cdf_norm) > 1
+                z = z./reshape(cdf_norm,size(z));
             else
-                z = z./data.norm;
+                z = z./cdf_norm;
             end
             z = reshape(z, size(r));
             %
-            z(z>=1) = 1;
-            z(z<=0) = 0;
+            z(isnan(z)) = eps;
+            z(isinf(z)) = 1-eps;
+            z(z>(1-eps)) = 1-eps;
+            z(z<eps) = eps;
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        function z = eval_cdf_deri(obj, pk, r)
+        function z = eval_int_deri(obj, pk, r)
             data = pdf2cdf(obj, pk);
             z = eval_int_lag(obj, data, r);
             z = reshape(z, size(r));
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        function r = invert_cdf(obj, pk, xi)
+            
+        function r = invert_cdf(obj, pk, rk, ref, xi)
             if (sum(pk(:)<0)>0)
                 disp(['negative pdf ' num2str(sum(pk(:)<0))])
             end
             data = pdf2cdf(obj, pk);
+            cdf_norm = data.poly_norm + rk;
+            tmp = eval_cdf(ref, obj.grid);
+            cdf_grid = data.cdf_poly_grid + rk.*reshape(tmp,[],1);
+            %
+            if data.size > 1 && data.size ~= length(xi)
+                error('Error: dimenion mismatch')
+            end
+            %
+            [mxi, nxi] = size(xi);
+            xi = reshape(xi,[],1); % vertical
+            
+            r = zeros(size(xi)); % vertical
+            % index to locate the element
+            if data.size == 1
+                rhs = xi.*cdf_norm;
+                ei  = sum(reshape(cdf_grid,1,[]) < rhs,2)';
+            else
+                rhs = xi(:).*cdf_norm(:);
+                %cdf_grid(1) = cdf_grid(1) + eps;
+                %cdf_grid(end) = cdf_grid(end) - eps;
+                ei  = sum(cdf_grid <= reshape(rhs,1,[]), 1);
+            end
+            
+            mask1 = ei==0; % left cell
+            if sum(mask1) > 0
+                if data.size == 1
+                    tmp = rhs(mask1)./rk;
+                else
+                    tmp = rhs(mask1)./reshape(rk(mask1),[],1);
+                end
+                r(mask1) = invert_cdf(ref, tmp);
+            end
+            mask2 = ei==(obj.num_elems+1); % right cell, need to implement
+            if sum(mask2) > 0
+                ref_right = eval_cdf(ref, obj.grid(end));
+                if data.size == 1
+                    tmp = (rhs(mask2)-cdf_grid(end))./rk;
+                else
+                    tmp = (rhs(mask2)-reshape(cdf_grid(end,mask2),[],1))./reshape(rk(mask2),[],1);
+                end
+                tmp(isnan(tmp)) = 0;
+                tmp(isinf(tmp)) = 0;
+                r(mask2) = invert_cdf(ref, tmp+ref_right);
+            end
+            %
+            mask3 = ~mask1 & ~mask2; % middle cells
+            if sum(mask3) > 0
+                if data.size == 1
+                    r(mask3) = invert_cdf_local(obj, data, rk, ref, ei(mask3), mask3, rhs(mask3));
+                else
+                    r(mask3) = invert_cdf_local(obj, data, rk(mask3), ref, ei(mask3), mask3, rhs(mask3));
+                end
+            end
+            %
+            r = reshape(r, mxi, nxi);
+            r(isnan(r)) = 0.5*(obj.domain(1) + obj.domain(2));
+            r(isinf(r)) = 0.5*(obj.domain(1) + obj.domain(2));
+        end
+        
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        function f = eval_int_lag_local_search(obj, data, rk, ref, ei, mask, rhs, r)
+            f = eval_int_lag_local(obj, data, ei, mask, r);
+            f_ref = eval_cdf(ref, r);
+            f  = f  + reshape(rk,[],1).*f_ref - rhs;
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        function [f,df] = eval_int_lag_local_newton(obj, data, rk, ref, ei, mask, rhs, r)
+            [f, df] = eval_int_lag_local_deri(obj, data, ei, mask, r);
+            [f_ref, df_ref] = eval_cdf(ref, r);
+            f  = f  + reshape(rk,[],1).*f_ref - rhs;
+            df = df + reshape(rk,[],1).*df_ref;
+        end
+        
+        %{
+        function r = invert_cdf(obj, pk, rk, ref, xi)
+            if (sum(pk(:)<0)>0)
+                disp(['negative pdf ' num2str(sum(pk(:)<0))])
+            end
+            data = pdf2cdf(obj, pk, rk, ref);
             if data.size > 1 && data.size ~= length(xi)
                 error('Error: dimenion mismatch')
             end
@@ -147,12 +261,12 @@ classdef PiecewiseCDF < OnedCDF
             % index to locate the element
             if data.size == 1
                 rhs = xi.*data.norm;
-                ei  = sum(reshape(data.cdf_grid,1,[]) < rhs,2)';
+                ei  = sum(reshape(data.cdf_sum_grid,1,[]) < rhs,2)';
             else
                 rhs = xi(:).*data.norm(:);
-                ei  = sum(data.cdf_grid <= reshape(rhs,1,[]), 1);
+                ei  = sum(data.cdf_sum_grid <= reshape(rhs,1,[]), 1);
             end
-            mask1 = ei==0;
+            mask1 = ei==0; % left cell, need to implement
             if sum(mask1) > 0
                 if data.size == 1
                     tmp = rhs(mask1)/data.pdf_left;
@@ -170,7 +284,7 @@ classdef PiecewiseCDF < OnedCDF
                         r(mask1) = tmp*obj.gs + obj.domain(1);
                 end
             end
-            mask2 = ei==(obj.num_elems+1);
+            mask2 = ei==(obj.num_elems+1); % right cell, need to implement
             if sum(mask2) > 0
                 if data.size == 1
                     tmp = (data.norm - rhs(mask2))/data.pdf_right;
@@ -188,22 +302,24 @@ classdef PiecewiseCDF < OnedCDF
                 end
             end
             %
-            mask3 = ~mask1 & ~mask2;
+            mask3 = ~mask1 & ~mask2; % middle cells
             if sum(mask3) > 0
-                r(mask3) = invert_cdf_local(obj, data, ei(mask3), mask3, rhs(mask3));
+                r(mask3) = invert_cdf_local(obj, data, rk, ref, ei(mask3), mask3, rhs(mask3));
             end
             %
             r = reshape(r, mxi, nxi);
             r(isnan(r)) = 0.5*(obj.domain(1) + obj.domain(2));
             r(isinf(r)) = 0.5*(obj.domain(1) + obj.domain(2));
         end
-        
+        %}
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        function c = regula_falsi(obj, data, ei, mask, rhs, a, b)    
-            fa = eval_int_lag_local(obj, data, ei, mask, a) - rhs;
-            fb = eval_int_lag_local(obj, data, ei, mask, b) - rhs;
-            if sum(sign(fb.*fa) ~= -1)
+        function c = regula_falsi(obj, data, rk, ref, ei, mask, rhs, a, b)    
+            fa = eval_int_lag_local_search(obj, data, rk, ref, ei, mask, rhs, a);
+            fb = eval_int_lag_local_search(obj, data, rk, ref, ei, mask, rhs, b);
+            %if sum(sign(fb.*fa) ~= -1)
+            %if sum(sign(fb.*fa) == 1)
+            if sum((fb.*fa) > eps)
                 disp('Root finding: initial guesses on one side')
             end
             c = b - fb.*(b - a)./(fb - fa);  % Regula Falsi
@@ -211,7 +327,7 @@ classdef PiecewiseCDF < OnedCDF
             %i = 2;
             while ( norm(c-cold, Inf) > obj.tol )
                 cold = c;
-                fc  = eval_int_lag_local(obj, data, ei, mask, c) - rhs;
+                fc  = eval_int_lag_local_search(obj, data, rk, ref, ei, mask, rhs, c);
                 if norm(fc, Inf) < obj.tol
                     break;
                 end
@@ -233,20 +349,25 @@ classdef PiecewiseCDF < OnedCDF
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        function c = newton(obj, data, ei, mask, rhs, a, b)
+        function c = newton(obj, data, rk, ref, ei, mask, rhs, a, b)
             %[f,df] = eval_int_lag_local_newton(obj, data, ei, mask, rhs, cold);
             %c = cold - f./df;
             %i = 0;
-            c = 0.5*(a+b);
+            fa = eval_int_lag_local_search(obj, data, rk, ref, ei, mask, rhs, a);
+            fb = eval_int_lag_local_search(obj, data, rk, ref, ei, mask, rhs, b);
+            if sum((fb.*fa) > eps)
+                disp('Root finding: initial guesses on one side')
+            end
+            c = b - fb.*(b - a)./(fb - fa);  % Regula Falsi
             rf_flag = true;
             for iter = 1:10
                 cold = c;
-                [f,df] = eval_int_lag_local_newton(obj, data, ei, mask, rhs, cold);
+                [f,df] = eval_int_lag_local_newton(obj, data, rk, ref, ei, mask, rhs, cold);
                 step = f./df;
                 step(isnan(step)) = 0;
                 c  = cold - step;
-                I1 = c<a;
-                I2 = c>b;
+                I1 = c<=a;
+                I2 = c>=b;
                 I3 = ~I1 & ~I2;
                 c  = a.*I1 + b.*I2 + c.*I3;
                 if ( norm(f, Inf) < obj.tol ) || ( norm(step, Inf) < obj.tol )
@@ -259,13 +380,13 @@ classdef PiecewiseCDF < OnedCDF
             %norm(f, inf)
             if rf_flag
                 disp('newton does not converge')
-                fc = eval_int_lag_local(obj, data, ei, mask, c) - rhs;
+                fc = eval_int_lag_local_search(obj, data, rk, ref, ei, mask, rhs, c);
                 I1 = (fc < 0);
                 I2 = (fc > 0);
                 I3 = ~I1 & ~I2;
                 a  = I1.*c + I2.*a + I3.*a;
                 b  = I1.*b + I2.*c + I3.*b;
-                c = regula_falsi(obj, data, ei, mask, rhs, a, b);
+                c = regula_falsi(obj, data, rk, ref, ei, mask, rhs, a, b);
             end
         end
         

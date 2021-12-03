@@ -20,8 +20,8 @@ sample_x = data.B\randn(d, 1E3);
 % setup the reference polynomial
 polys{1} = Legendre(40, [-5,5]);
 polys{2} = Fourier(20, [-5,5]);
-polys{3} = Lagrangep(5, 8, [-5,5], 'ghost_size', 1E-5);
-polys{4} = Lagrange1(40, [-5,5], 'ghost_size', 1E-5);
+polys{3} = Lagrangep(5, 8, [-5,5]);
+polys{4} = Lagrange1(40, [-5,5]);
 
 opts{1} = FTToption('tt_method', 'amen', 'sqrt_flag', true, ...
     'als_tol', 1E-4, 'local_tol', 1E-10, 'max_rank', 19, 'max_als', 5);
@@ -69,6 +69,7 @@ end
 
 for i = 1:4
     for j = 1:2
+        irts{i,j} = set_defensive(irts{i,j}, 1E-2);
         m = 8;
         indx = 1:m;
         indy = (m+1):d;

@@ -2,7 +2,7 @@ classdef DIRT
     % DIRT class
     %
     % DIRT Properties:    
-    %   diag        - Type of the diagonal transformation in DIRT
+    %   ref         - The diagonal transformation and reference in DIRT
     %   logz        - Log normalising constant
     %   irts        - A cell array of IRTs
     %   method      - Type of DIRT construction, choose either 'Eratio'
@@ -57,47 +57,46 @@ classdef DIRT
     % % Case 1: using a uniform reference measure with Lagrange basis
     % %
     % % Define the map to the reference measure
-    %   diag = uniformMap();
+    %   ref = UniformReference();
     % % Define two basis functions, the first one is for discretising the 
     % % 0th level bridging density and the second one is for discretising 
     % % w.r.t. the reference measure.
-    %   poly = {Lagrange1(60,[-4,4],'ghost_size',1E-2,'bc','Dirichlet'), ...
-    %       Lagrange1(60,diag.domain,'ghost_size',1E-2,'bc','Dirichlet')};
+    %   poly = {Lagrange1(60,[-4,4]), Lagrange1(60,ref.domain)};
     % % Define options for running ALS
     %   opt = FTToption('max_als',4,'init_rank',40,'max_rank', 50);
     % % Build DIRT using the approximate ratio method. The second argument
     % % is the dimenion of the parameters, 'ess_tol' is used for adaptation
-    %   dirt = DIRT(@(u)fun_banana(u,data,sigma,beta),2,poly,diag,opt,...
+    %   dirt = DIRT(@(u)fun_banana(u,data,sigma,beta),2,poly,ref,opt,...
     %       'min_beta',1E-3,'ess_tol',0.8,'method','Aratio');
     %
     % % Case 2: using a uniform reference measure with Legendre basis
     % %
     % % Define the map to the reference measure
-    %   diag = uniformMap();
+    %   ref = UniformReference();
     % % Define two basis functions, the first one is for discretising the 
     % % 0th level bridging density and the second one is for discretising 
     % % w.r.t. the reference measure.
-    %   poly = {Legendre(60, [-4, 4]), Legendre(40, diag.domain)};
+    %   poly = {Legendre(60, [-4, 4]), Legendre(40, ref.domain)};
     % % Define options for running ALS
     %   opt = FTToption('max_als',4,'init_rank',40,'max_rank', 50);
     % % Build DIRT using the eaxct ratio method. Here the temperatures are
     % % prespecifed via the parameter 'betas'.
-    %   dirt = DIRT(@(u)fun_banana(u,data,sigma,beta),2,poly,diag,opt,...
+    %   dirt = DIRT(@(u)fun_banana(u,data,sigma,beta),2,poly,ref,opt,...
     %       'betas',2.^(-9:0),'method','Eratio');
     %
     % % Case 3: using a Gaussian reference measure with Fourier
     % %
     % % Define the map to the reference measure
-    %   diag = GaussMap([-4,4]);
+    %   ref = GaussReference(0,1,[-5,5]);
     % % Define two basis functions, the first one is for discretising the 
     % % 0th level bridging density and the second one is for discretising 
     % % w.r.t. the reference measure.
-    %   poly = {Fourier(30,[-4,4]), Fourier(30,diag.domain)};
+    %   poly = {Fourier(30,[-5,5]), Fourier(30,ref.domain)};
     % % Define options for running ALS
     %   opt = FTToption('max_als',4,'init_rank',40,'max_rank', 50);
     % % Build DIRT using the approximate ratio method. The second argument
     % % is the dimenion of the parameters, 'ess_tol' is used for adaptation
-    %   dirt = DIRT(@(u)fun_banana(u,data,sigma,beta),2,poly,diag,opt,...
+    %   dirt = DIRT(@(u)fun_banana(u,data,sigma,beta),2,poly,ref,opt,...
     %       'min_beta',1E-3,'ess_tol',0.8,'method','Aratio');
     %
     %%%%%%%%%%%%%%%%%
@@ -110,7 +109,7 @@ classdef DIRT
         method
         %
         d
-        diag
+        ref
         %
         n_layers
         max_layers
@@ -154,13 +153,13 @@ classdef DIRT
         
         function r = random(obj, n)
             % pseudo random samples
-            z = random(obj.diag, obj.d, n);
+            z = random(obj.ref, obj.d, n);
             r = eval_irt(obj, z);
         end
         
         function r = sobol(obj, n)
             % QMC samples using Sobol sequence
-            z = sobol(obj.diag, obj.d, n);
+            z = sobol(obj.ref, obj.d, n);
             r = eval_irt(obj, z);
         end
         
@@ -169,7 +168,7 @@ classdef DIRT
             % structures for SIRT. Need to run marginalise after this.
             % parsing inputs
             defaultOption   = FTToption('max_als', 2);
-            defaultDiag = GaussMap([-4, 4]);
+            defaultRef = GaussReference();
             defaultMethod   = 'Aratio';
             expectedMethod  = {'Eratio','Aratio'};
             defaultMLayers  = 50;
@@ -187,7 +186,7 @@ classdef DIRT
             addRequired(p, 'd',     validScalarPosNum);
             %addRequired(p, 'oneds');
             addRequired(p, 'arg');
-            addOptional(p, 'diag', defaultDiag);
+            addOptional(p, 'ref', defaultRef);
             %
             addOptional(p, 'option',defaultOption);
             addParameter(p,'method',defaultMethod, ...
@@ -205,7 +204,7 @@ classdef DIRT
             %
             sirt_opt = p.Results.option;
             obj.d = d;
-            obj.diag = p.Results.diag;
+            obj.ref = p.Results.ref;
             obj.method = p.Results.method;
             obj.max_layers = p.Results.max_layers;
             %obj.qmc_flag = p.Results.qmc_flag;
@@ -228,17 +227,17 @@ classdef DIRT
                 oneds = cell(2,1);
                 oneds{1} = arg;
                 if isa(arg, 'Lagrange1')
-                    oneds{2} = feval(class(arg), arg.num_elems, obj.diag.domain, 'ghost_size', arg.gs, 'bc', arg.bc);
+                    oneds{2} = feval(class(arg), arg.num_elems, obj.ref.domain); 
                 elseif isa(arg, 'Lagrangep')
-                    oneds{2} = feval(class(arg), arg.order, arg.num_elems, obj.diag.domain, 'ghost_size', arg.gs, 'bc', arg.bc);
+                    oneds{2} = feval(class(arg), arg.order, arg.num_elems, obj.ref.domain);
                 else
-                    oneds{2} = feval(class(arg), arg.order, obj.diag.domain);
+                    oneds{2} = feval(class(arg), arg.order, obj.ref.domain);
                 end
                 elseif isa(arg, 'numeric') && length(arg) == 2
                 % arg give the domain
                 oneds = cell(2,1);
                 oneds{1} = Lagrangep(2, 25, arg);
-                oneds{2} = Lagrangep(2, 25, obj.diag.domain);
+                oneds{2} = Lagrangep(2, 25, obj.ref.domain);
             else
                 error('wrong type of argument')
             end

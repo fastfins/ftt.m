@@ -1,9 +1,9 @@
 
 % setup the reference
-tol = 0;
+tol = 1E-10;
 poly1 = Legendre(20, [tol, 1]);
 poly2 = Lagrange1(50);
-poly3 = Lagrangep(5, 4, [tol, 1], 'ghost_size', 1E-10);
+poly3 = Lagrangep(5, 4, [tol, 1]);
 
 %%%%
 

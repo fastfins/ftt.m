@@ -13,7 +13,7 @@ classdef GaussMap < DiagonalMap
             u(u > 1-eps) = 1-eps;
             u(u < eps) = eps;
             %
-            Juz = exp( -0.5*z.^2-0.5*log(2*pi) );
+            Juz = exp( -0.5*z.^2 - 0.5*log(2*pi) );
             %%}
             %{
             z(z >= obj.domain(2)) = obj.domain(2);
@@ -30,26 +30,31 @@ classdef GaussMap < DiagonalMap
         
         function  z = eval_icdf(obj, u)
             %u = u*(obj.right-obj.left) + obj.left;
+            u(u > 1-eps) = 1-eps;
+            u(u < eps) = eps;
             z = erfinv(u*2 - 1)*sqrt(2);
-            z(z >= obj.domain(2)) = obj.domain(2);
-            z(z <= obj.domain(1)) = obj.domain(1);
+            %z(z >= obj.domain(2)) = obj.domain(2);
+            %z(z <= obj.domain(1)) = obj.domain(1);
         end
         
         function [lf, glf] = log_pdf(obj, z)
             s = size(z,1);
-            %lf  = - 0.5*sum(z.^2, 1) - 0.5*log(2*pi)*s;
-            lf  = - 0.5*sum(z.^2, 1) - 0.5*log(2*pi)*s - s*log((obj.right-obj.left));
+            lf  = - 0.5*sum(z.^2, 1) - 0.5*log(2*pi)*s;
+            %lf  = - 0.5*sum(z.^2, 1) - 0.5*log(2*pi)*s - s*log((obj.right-obj.left));
             glf = - z; 
         end
         
         function z = random(obj, d, n)
             % pseudo random samples
+            %{
             u = rand(d, n);
             %
             u = u*(obj.right-obj.left) + obj.left;
             z = erfinv(u*2 - 1)*sqrt(2);
             z(z >= obj.domain(2)) = obj.domain(2);
             z(z <= obj.domain(1)) = obj.domain(1);
+            %}
+            z = randn(d,n);
         end
         
         function z = sobol(obj, d, n)

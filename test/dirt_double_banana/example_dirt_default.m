@@ -31,8 +31,8 @@ rf = exp(-0.5*sum(xts.^2, 1));
 airt = DIRT(fun,2,[-4,4]);
 
 n  = 100;
-rxs = linspace(airt.diag.domain(1), airt.diag.domain(2), n);
-rys = linspace(airt.diag.domain(1), airt.diag.domain(2), n);
+rxs = linspace(airt.ref.domain(1), airt.ref.domain(2), n);
+rys = linspace(airt.ref.domain(1), airt.ref.domain(2), n);
 [xx,yy] = meshgrid(rxs, rys);
 rts = [xx(:), yy(:)]';
 
@@ -71,7 +71,7 @@ for k = 1:airt.n_layers
     if k > 1
         [x,logf] = eval_irt(airt, rts, k-1);
         [mllkd, mlp] = fun(x);
-        logfz = log_pdf(airt.diag, rts);
+        logfz = log_joint_pdf(airt.ref, rts);
         
         bf = exp(-mllkd*(airt.betas(k)-airt.betas(k-1))+logfz);
         

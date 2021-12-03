@@ -33,6 +33,31 @@ ei = ceil( (x-poly.grid(1))./poly.elem_size );
 %
 f = zeros(size(x));
 g = zeros(size(theta));
+for k = 1:poly.num_elems
+    ind1 = (ei>k);  % integrate the whole element
+    ind2 = (ei==k); % integrate to x
+    n1 = sum(ind1);
+    n2 = sum(ind2);
+    %
+    %b = (theta(k+1,:)-theta(k,:))./poly.elem_size;
+    %tmp = 2.^b + 1;
+    tmp = 2.^((theta(k+1,:)-theta(k,:))./poly.elem_size);
+    if n1 > 0
+        f(ind1) = f(ind1) + log2(tmp(ind1)+1)*poly.elem_size;
+        g(k,ind1) = g(k,ind1) - tmp(ind1)./(tmp(ind1)+1);
+        g(k+1,ind1) = g(k+1,ind1) + tmp(ind1)./(tmp(ind1)+1);
+    end
+    if n2 > 0
+        dx = x(ind2) - poly.grid(k);
+        f(ind2) = f(ind2) + log2(tmp(ind2)+1).*dx;
+        g(k,ind2) = g(k,ind2) - tmp(ind2)./(tmp(ind2)+1).*(dx/poly.elem_size);
+        g(k+1,ind2) = g(k+1,ind2) + tmp(ind2)./(tmp(ind2)+1).*(dx/poly.elem_size);
+    end
+end
+
+end
+
+%{
 for k = 0:(poly.num_elems+1)
     ind1 = (ei>k);  % integrate the whole element
     ind2 = (ei==k); % integrate to x
@@ -82,6 +107,4 @@ for k = 0:(poly.num_elems+1)
         end
     end
 end
-
-end
-
+%}

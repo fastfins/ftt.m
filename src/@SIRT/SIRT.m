@@ -5,20 +5,23 @@ classdef SIRT < FTT
     %   int_dir     - The direction for marginalising the FTT.
     %                 >0: marginalise from x_d to x_1
     %                 <0: marginalise from x_1 to x_d
+    %   tt_z        - Normalising constant of the TT part
     %   z           - Normalising constant
+    %   tau         - denfensive term
     %   ys          - A cell array holding squared FTT cores.
     %   ms          - A cell array for computing the marginal density.
     %   oned_cdfs   - One dimensional bases for building CDFs.
+    %   oned_refs   - One dimensional reference densities for building CDFs.
     %
     % SIRT Methods:
     %   marginalise - Marginalise the squared FTT.
     %   eval_pdf    - Evaluate the normalised (marginal) pdf.
-    %   eval_irt    - X = R^{-1}(Z), where X is the target random variable, 
+    %   eval_irt    - X = R^{-1}(Z), where X is the target random variable,
     %                 R is the Rosenblatt transport, and Z is the uniform
-    %                 random variable. 
+    %                 random variable.
     %               * This function can map marginal random variables.
-    %   eval_cirt   - Y|X = R^{-1}(Z, X), where X is given, (X,Y) jointly 
-    %                 follow the target represented by SIRT, Z is uniform. 
+    %   eval_cirt   - Y|X = R^{-1}(Z, X), where X is given, (X,Y) jointly
+    %                 follow the target represented by SIRT, Z is uniform.
     %               * This function cannot handle marginal random variables.
     %   eval_rt     - Z = R(X), where Z is uniform and X is target.
     %               * This function can map marginal random variables.
@@ -29,7 +32,7 @@ classdef SIRT < FTT
     %
     %%%%%%%%%%%%%%%%%
     %
-    % Example: 
+    % Example:
     %
     % % Setup a d-dimensional Gausssian density with correlation controlled
     % % by a.
@@ -72,7 +75,7 @@ classdef SIRT < FTT
     % % normalising constant of the marginal
     %   marginal_z = @(ind) sqrt(det(C(ind,ind))*(2*pi)^length(ind));
     %
-    % % Case 2.1: Marginal for X_1, ..., X_k 
+    % % Case 2.1: Marginal for X_1, ..., X_k
     % %     - need to run the marginal function with int_dir=1 (default)
     %   if irt.int_dir ~= 1, irt = marginalise(irt, 1); end
     %   ind = 1:8; % the leftover coordinates after marginalisation
@@ -85,7 +88,7 @@ classdef SIRT < FTT
     %   figure; plot(fe , f, '.');
     %   figure; plot(C(ind, ind) - cov(Xm'))
     %
-    % % Case 2.2: Marginal for X_{k+1}, ..., X_d 
+    % % Case 2.2: Marginal for X_{k+1}, ..., X_d
     % %     - need to run the marginal function with int_dir=-1
     %   if irt.int_dir ~= -1, irt = marginalise(irt, -1); end
     %   ind = 13:d; % the leftover coordinates after marginalisation
@@ -101,14 +104,14 @@ classdef SIRT < FTT
     %%%%%%%%%%%%%%%%%
     %
     % % Task 3: inverse Rosenblatt transport for conditional random variables.
-    % % Case 3.1: X_{>=k} | x_{<k} 
+    % % Case 3.1: X_{>=k} | x_{<k}
     % %     - need to run the marginal function with int_dir=1 (default)
     %   indx = 1:8; % index of variables that will be conditioned on
-    %   indy = 9:d; % index of conditional variables 
+    %   indy = 9:d; % index of conditional variables
     %   X = B\randn(d,1);
     %   X = X(indx);
     %   % conditional mean
-    %   my = C(indy,indx)*(C(indx,indx)\X); 
+    %   my = C(indy,indx)*(C(indx,indx)\X);
     %   % conditional covariance
     %   Cy = C(indy,indy) - C(indy,indx)*(C(indx,indx)\C(indx,indy));
     %   Zy = Z(indy,:);
@@ -122,11 +125,11 @@ classdef SIRT < FTT
     % % Case 3.2: X_{<=k} | x_{>k}
     % %     - need to run the marginal function with int_dir=-1
     %   indx = 9:d; % index of variables that will be conditioned on
-    %   indy = 1:8; % index of conditional variables 
+    %   indy = 1:8; % index of conditional variables
     %   X = B\randn(d,1);
     %   X = X(indx);
     %   % conditional mean
-    %   my = C(indy,indx)*(C(indx,indx)\X); 
+    %   my = C(indy,indx)*(C(indx,indx)\X);
     %   % conditional covariance
     %   Cy = C(indy,indy) - C(indy,indx)*(C(indx,indx)\C(indx,indy));
     %   Zy = Z(indy,:);
@@ -137,14 +140,14 @@ classdef SIRT < FTT
     %   figure; plot(Cy - cov(Y'))
     %   figure; plot(my - mean(Y,2))
     %
-    % % Case 3.3: Alternative way for generating X_{>=k} | x_{<k} 
+    % % Case 3.3: Alternative way for generating X_{>=k} | x_{<k}
     % %     - need to run the marginal function with int_dir=1 (default)
     %   indx = 1:8; % index of variables that will be conditioned on
-    %   indy = 9:d; % index of conditional variables 
+    %   indy = 9:d; % index of conditional variables
     %   X = B\randn(d,1);
     %   X = X(indx);
     %   % conditional mean
-    %   my = C(indy,indx)*(C(indx,indx)\X); 
+    %   my = C(indy,indx)*(C(indx,indx)\X);
     %   % conditional covariance
     %   Cy = C(indy,indy) - C(indy,indx)*(C(indx,indx)\C(indx,indy));
     %   Zy = Z(indy,:);
@@ -166,10 +169,13 @@ classdef SIRT < FTT
     
     properties
         int_dir
+        tt_z
         z
         ys
         ms
         oned_cdfs
+        oned_refs
+        tau
     end
     
     methods (Static)
@@ -217,22 +223,22 @@ classdef SIRT < FTT
     methods
         [r,f,g] = eval_irt(obj, z)
         % Evaluate squared IRT r = T(z), where z is uniform
-
+        
         [r,f] = eval_cirt(obj, x, z)
-        % Using SIRT to draw conditional samples from the target pdf 
+        % Using SIRT to draw conditional samples from the target pdf
         % approximated by FTT
-
+        
         z = eval_rt(obj, r)
         % Evaluate squared RT z = T(r), where z is uniform and r is target r.v.
         
         J = eval_rt_jac(firt, r, z)
-        % Evaluate the jacobian of the squared RT z = T(r), where z is 
+        % Evaluate the jacobian of the squared RT z = T(r), where z is
         % uniform and r is target r.v.
-
+        
         fx = eval_pdf(obj, x)
         % Evaluate the marginalise pdf represented by ftt
         
-        obj = marginalise(obj, dir) 
+        obj = marginalise(obj, dir)
         % Marginalise the pdf represented by ftt dimension by dimension
         
         function r = random(obj, n)
@@ -250,12 +256,65 @@ classdef SIRT < FTT
             r = eval_irt(obj, u');
         end
         
+        function obj = set_defensive(obj, tau)
+            obj.tau = tau;
+            obj.z = obj.tt_z + tau;
+        end
+        
         function obj = SIRT(func, d, varargin)
-            % Call FTT constructor to build the FTT and setup data 
+            % Call FTT constructor to build the FTT and setup data
             % structures for SIRT. Need to run marginalise after this.
-            
             %
-            obj@FTT(func, d, varargin{:})
+            defaultRef      = 'uniform';
+            defaultTau      = 1E-6;
+            defaultArg      = Lagrangep(2, 20, [-3,3]);
+            defaultOption   = FTToption();
+            defaultSampleSet = [];
+            defaultDebugSet = [];
+            validErrTol = @(x) isnumeric(x) && isscalar(x) && (x>=0) && (x<1);
+            %
+            p = inputParser;
+            validScalarPosNum = @(x) isnumeric(x) && isscalar(x) && (x > 0);
+            %
+            addRequired(p,'func',@(x) isa(x, 'function_handle'));
+            addRequired(p,'d',validScalarPosNum);
+            addOptional(p,'arg',defaultArg);
+            addOptional(p,'option',defaultOption);
+            %
+            addParameter(p,'defensive', defaultTau, validErrTol);
+            addParameter(p,'reference', defaultRef);
+            addParameter(p,'sample_x', defaultSampleSet);
+            addParameter(p,'debug_x',  defaultDebugSet);
+            %
+            p.KeepUnmatched = false;
+            parse(p,func,d,varargin{:});
+            %
+            arg = p.Results.arg;
+            opt = p.Results.option;
+            ref = p.Results.reference;
+            tau = p.Results.defensive;
+            debug_x = p.Results.debug_x;
+            sample_x = p.Results.sample_x;
+            %
+            obj@FTT(func, d, arg, opt, 'debug_x', debug_x, 'sample_x', sample_x)
+            %
+            obj.oned_refs = cell(size(obj.oneds));
+            if isa(ref, 'cell')
+                for k = 1:d
+                    if ~isa(ref{k}, 'Reference')
+                        error('wrong type of argument')
+                    end
+                    obj.oned_refs{k} = ref{k};
+                end
+            elseif isa(ref, 'Reference')
+                for k = 1:d
+                    obj.oned_refs{k} = ref;
+                end
+            else
+                for k = 1:length(obj.oneds)
+                    obj.oned_refs{k} = UniformReference(obj.oneds{k}.domain);
+                end
+            end
             %
             if strcmp(obj.opt.tt_method, 'amen')
                 obj = round(obj);
@@ -266,6 +325,9 @@ classdef SIRT < FTT
                 obj.oned_cdfs{i} = CDFconstructor(obj.oneds{i}, obj.opt.cdf_tol);
             end
             obj = marginalise(obj);
+            %obj = set_defensive(obj, tau);
+            obj.tau = tau;
+            obj.z = obj.tt_z + tau;
         end
     end
     

@@ -92,6 +92,7 @@ classdef FTT
         oneds
         interp_x
         direction
+        l2_err
         n_evals
         res_x
         res_w

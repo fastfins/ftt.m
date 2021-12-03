@@ -24,12 +24,12 @@ logf = zeros(1, size(z,2));
 if nargout <= 2
     for l = k:-1:1
         % evaluate the diagonal transform
-        u = eval_cdf(obj.diag, x);
+        u = eval_cdf(obj.ref, x);
         % evaluate sirt
         [x, ft] = eval_irt(obj.irts{l}, u);
         % evaluate the denominator of the Jacobian
         if l > 1
-            logfx = log_pdf(obj.diag, x);
+            logfx = log_joint_pdf(obj.ref, x);
         else
             logfx = 0;
         end
@@ -42,14 +42,14 @@ else
     gx  = cell(k,1);
     for l = k:-1:1
         % evaluate the diagonal transform
-        [u,Juz{l}] = eval_cdf(obj.diag, x);
+        [u,Juz{l}] = eval_cdf(obj.ref, x);
         % evaluate sirt
         [x,ft,glt] = eval_irt(obj.irts{l}, u);
         % compuate Jacobian
         Jux{l} = eval_rt_jac(obj.irts{l}, x, u);
         % evaluate the denominator of the Jacobian
         if l > 1
-            [logfx,glfx] = log_pdf(obj.diag, x);
+            [logfx,glfx] = log_joint_pdf(obj.ref, x);
         else
             logfx = 0;
             glfx = 0;

@@ -41,6 +41,42 @@ ei = ceil( (x-poly.grid(1))./poly.elem_size );
 %
 f = zeros(size(x));
 g = zeros(size(theta));
+for k = 1:poly.num_elems
+    ind1 = (ei>k);  % integrate the whole element
+    ind2 = (ei==k); % integrate to x
+    n1 = sum(ind1);
+    n2 = sum(ind2);
+    %
+    ind = (1:3) + 2*(k-1);
+    %coef = iV*theta(ind,:); % a b c for each elements
+    b = iV(2,:)*theta(ind,:);
+    c = iV(3,:)*theta(ind,:);
+    % int(g) = -dilog(2^(b + 2*c*x) + 1)/(2*c*log(2)^2)
+    % dint(g)/db = log(2^(b + 2*c*x) + 1)/(2*c)
+    % dint(g)/dc = dilog(2^(b + 2*c*x) + 1)/(2*c^2*log(2)) + (x*log(2^(b + 2*c*x) + 1))/c
+    if n1 > 0
+        tmp1 = 2.^(b(ind1)+2*c(ind1)*poly.elem_size);
+        tmp2 = 2.^b(ind1);
+        inte = dilog2(-tmp2) - dilog2(-tmp1);
+        f(ind1) = f(ind1) + inte./(2*c(ind1)*log(2)^2);
+        %
+        dintdb = (log2(tmp1+1)-log2(tmp2+1))./(2*c(ind1));
+        dintdc = -inte./(2*c(ind1).^2*log(2)^2) + poly.elem_size*log2(tmp1+1)./c(ind1);
+        g(ind,ind1) = g(ind,ind1) + dintdb.*iV(2,:)' + dintdc.*iV(3,:)';
+    end
+    if n2 > 0
+        dx = x(ind2) - poly.grid(k);
+        tmp1 = 2.^(b(ind2)+2*c(ind2).*dx);
+        tmp2 = 2.^b(ind2);
+        tmp = dilog2(-tmp2) - dilog2(-tmp1);
+        f(ind2) = f(ind2) + tmp./(2*c(ind2)*log(2)^2);
+        %
+        dintdb = (log2(tmp1+1)-log2(tmp2+1))./(2*c(ind2));
+        dintdc = -tmp./(2*c(ind2).^2*log(2)^2) + dx.*log2(tmp1+1)./c(ind2);
+        g(ind,ind2) = g(ind,ind2) + dintdb.*iV(2,:)' + dintdc.*iV(3,:)';
+    end
+end
+%{
 for k = 0:(poly.num_elems+1)
     ind1 = (ei>k);  % integrate the whole element
     ind2 = (ei==k); % integrate to x
@@ -104,7 +140,7 @@ for k = 0:(poly.num_elems+1)
         end
     end
 end
-
+%}
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -112,7 +148,7 @@ end
 function d = dilog2(z)
 % DILOG = di-Logarithm.
 %
-% d = dilog(z) = Li_2(z) 
+% d = dilog(z) = Li_2(z)
 %   = -Int From t=0 To t=z    log(1-t) dt/t         for all z.
 %   =  Sum From n=1 To n=Inf  z^n/n^2               for |z|<=1.
 %
@@ -124,26 +160,26 @@ function d = dilog2(z)
 % [3] http://en.wikipedia.org/wiki/Polylog
 % Didier Clamond, February 28th, 2006.
 % Initialization.
-d  = zeros(size(z));     
-s  =  ones(size(z));     
-      
+d  = zeros(size(z));
+s  =  ones(size(z));
+
 % For large moduli: Mapping onto the unit circle |z|<=1.
 j = find(abs(z)>1);
-d(j) = -1.64493406684822643 - 0.5*log(-z(j)).^2; 
+d(j) = -1.64493406684822643 - 0.5*log(-z(j)).^2;
 s(j) = -s(j);
-z(j) = 1./z(j); 
+z(j) = 1./z(j);
 % For large positive real parts: Mapping onto the unit circle with Re(z)<=1/2.
 j = find(real(z)>0.5);
 d(j) = d(j) + s(j).*( 1.64493406684822643 - log((1-z(j)).^log(z(j))) );
 s(j) = -s(j);
 z(j) = 1 - z(j);
 % Transformation to Debye function and rational approximation.
-z = -log(1-z);                                                                                
-s = s.*z;                                                                                      
-d = d - 0.25*s.*z;                                                                            
-z = z.*z;                                                                                     
-s = s.*(1+z.*(6.3710458848408100e-2+z.*(1.04089578261587314e-3+z*4.0481119635180974e-6)));    
-s = s./(1+z.*(3.5932681070630322e-2+z.*(3.20543530653919745e-4+z*4.0131343133751755e-7)));    
-d = d + s;                                                                                    
+z = -log(1-z);
+s = s.*z;
+d = d - 0.25*s.*z;
+z = z.*z;
+s = s.*(1+z.*(6.3710458848408100e-2+z.*(1.04089578261587314e-3+z*4.0481119635180974e-6)));
+s = s./(1+z.*(3.5932681070630322e-2+z.*(3.20543530653919745e-4+z*4.0131343133751755e-7)));
+d = d + s;
 
 end

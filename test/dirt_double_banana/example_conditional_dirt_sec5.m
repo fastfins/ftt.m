@@ -4,9 +4,10 @@ close all
 sig = 0.3;
 fun = @(z) joint_banana(z,sig);
 
-refmap = GaussMap([-4, 4]);
-poly = Fourier(25, [-4, 4]); 
-opt = FTToption('max_als', 2, 'als_tol', 1E-8, 'local_tol', 1E-5, 'kick_rank', 2, 'init_rank', 20, 'max_rank', 20);
+refmap = GaussReference(0,1,[-4,4]);
+%poly = Fourier(25, [-4, 4]); 
+poly = Lagrange1(60, [-4, 4]);
+opt = FTToption('max_als', 2, 'als_tol', 1E-8, 'local_tol', 1E-5, 'kick_rank', 2, 'init_rank', 30, 'max_rank', 30);
 if ~exist('irt')
     irt = DIRT(fun, 3, poly, refmap, opt, 'ess_tol', 0.5); % the conditonal DIRT
 end
@@ -29,7 +30,7 @@ ys = linspace(-4, 4, n);
 xts = [xx(:), yy(:)]';
 %
 us = linspace(0, 1, n);
-rxs = eval_icdf(irt.diag, us);
+rxs = invert_cdf(irt.ref, us);
 rys = rxs;
 [xx,yy] = meshgrid(rxs, rys);
 rts = [xx(:), yy(:)]';
@@ -67,7 +68,7 @@ for ii = 1:length(data)
     mlf = pullback(irt, fun, [repmat(ry,1,size(rts,2));rts]);
     %
     
-    r = random(irt.diag, 2, 256); % sample the reference measure
+    r = random(irt.ref, 2, 256); % sample the reference measure
     subplot(2,4,2)
     contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 20, 'linewidth', 1, 'Color', blue)
     hold on
@@ -93,7 +94,7 @@ for ii = 1:length(data)
     axis([-2, 2, -1, 2])
     
     
-    r = sobol(irt.diag, 2, 256); % QMC sample the reference measure
+    r = sobol(irt.ref, 2, 256); % QMC sample the reference measure
     subplot(2,4,3)
     contour(rxs, rys, reshape(exp(-mlf(:)), n, n), 20, 'linewidth', 1, 'Color', blue)
     hold on

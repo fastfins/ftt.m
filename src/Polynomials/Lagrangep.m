@@ -40,6 +40,7 @@ classdef Lagrangep < Piecewise
                 obj.mass(ind,ind) = obj.mass(ind,ind) + obj.local.mass*obj.jac;
                 obj.weights(ind)  = obj.weights(ind) + obj.local.weights(:)*obj.jac;
             end
+            %{
             % modify the boundary layer
             switch obj.bc
                 case{'Neumann'}
@@ -56,6 +57,7 @@ classdef Lagrangep < Piecewise
             obj.mass(end,end)   = obj.mass(end,end) + tmp_m;
             obj.weights(1)      = obj.weights(1) + tmp_w;
             obj.weights(end)    = obj.weights(end) + tmp_w;
+            %}
             %
             obj.mass    = sparse(0.5*(obj.mass+obj.mass'));
             obj.mass_R  = chol(obj.mass);
@@ -132,6 +134,46 @@ classdef Lagrangep < Piecewise
             tau = eps; % safe guard thershold
             n   = length(x);
             bas = zeros(n,obj.num_nodes);
+            mask_left   = obj.domain(1) > x(:);
+            mask_right  = obj.domain(2) < x(:);
+            mask_inside = ~(mask_left | mask_right);
+            %{
+            if sum(mask_left | mask_right)
+                disp('warning: points outside of the domain')
+            end
+            %}
+            %
+            if sum(mask_inside) > 0
+                tmp_x   = x(mask_inside);
+                % find the element indices for each x
+                ind = ceil((tmp_x(:)-obj.domain(1))./obj.elem_size);
+                ind(ind==0) = 1;
+                % map each x into local coordinate
+                local_x = (reshape(tmp_x, 1, []) - reshape(obj.grid(ind), 1, []))./obj.elem_size;
+                % evaluate the barycentric formula
+                diff    = repmat(local_x(:), 1, obj.local.num_nodes) - repmat(obj.local.nodes(:)', length(tmp_x), 1);
+                % stablise
+                diff(abs(diff)<tau) = tau;
+                tmp_m   = repmat(obj.local.omega(:)', length(tmp_x), 1) ./ diff;
+                lbs     = tmp_m./sum(tmp_m, 2);
+                % embed lbs into the global grid
+                % obj.global2local(ind,:) are the col indices
+                % repmat(find(mask_inside), 1, obj.local.num_nodes)  are the row indices
+                %
+                coi = obj.global2local(ind,:);
+                roi = repmat(find(mask_inside), 1, obj.local.num_nodes);
+                ii  = (coi-1)*n + roi;
+                % evaluation of the internal interpolation
+                bas(ii(:))  = lbs(:);
+            end
+            w = ones(size(x(:)));
+        end
+        
+        %{
+        function [bas, w] = eval_basis(obj, x)
+            tau = eps; % safe guard thershold
+            n   = length(x);
+            bas = zeros(n,obj.num_nodes);
             %
             if sum(obj.domain(1)-tau > x | obj.domain(2)+tau < x)
                 disp('warning: points outside of the domain')
@@ -179,9 +221,51 @@ classdef Lagrangep < Piecewise
             end
             w = ones(size(x(:)));
         end
-        
+        %}
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
+        function [bas, w] = eval_basis_deri(obj, x)
+            n   = length(x);
+            bas = zeros(n,obj.num_nodes);
+            mask_left   = obj.domain(1) > x(:);
+            mask_right  = obj.domain(2) < x(:);
+            mask_inside = ~(mask_left | mask_right);
+            if sum(mask_left | mask_right)
+                disp('warning: points outside of the domain')
+            end
+            if sum(mask_inside) > 0
+                tmp_x   = x(mask_inside);
+                % find the element indices for each x
+                ind = ceil((tmp_x(:)-obj.domain(1))./obj.elem_size);
+                ind(ind==0) = 1;
+                % map each x into local coordinate
+                local_x = (reshape(tmp_x, 1, []) - reshape(obj.grid(ind), 1, []))./obj.elem_size;
+                % evaluate the barycentric formula
+                diff    = repmat(local_x(:), 1, obj.local.num_nodes) - repmat(obj.local.nodes(:)', length(tmp_x), 1);
+                % stablise
+                diff(abs(diff)<eps) = eps;
+                tmp_m1 = repmat(obj.local.omega(:)', length(tmp_x), 1) ./ diff;
+                tmp_m2 = repmat(obj.local.omega(:)', length(tmp_x), 1) ./ (diff.^2);
+                %original function
+                %lbs     = tmp_m./sum(tmp_m, 2);
+                %
+                a = 1./sum(tmp_m1, 2);
+                b = sum(tmp_m2, 2).*(a.^2);
+                lbs = (tmp_m1.*b - tmp_m2.*a)./obj.jac; 
+                % embed lbs into the global grid
+                % obj.global2local(ind,:) are the col indices
+                % repmat(find(mask_inside), 1, obj.local.num_nodes)  are the row indices
+                %
+                coi = obj.global2local(ind,:);
+                roi = repmat(find(mask_inside), 1, obj.local.num_nodes);
+                ii  = (coi-1)*n + roi;
+                % evaluation of the internal interpolation
+                bas(ii(:))  = lbs(:);
+            end
+            w = ones(size(x(:)));
+        end
+        
+        %{
         function [bas, w] = eval_basis_deri(obj, x)
             tau = eps; % safe guard thershold
             n   = length(x);
@@ -235,5 +319,6 @@ classdef Lagrangep < Piecewise
             end
             w = ones(size(x(:)));
         end
+        %}
     end
 end

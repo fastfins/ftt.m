@@ -1,7 +1,6 @@
 classdef DiagonalMap
     % diagonalMap class 
-    %               - Superclass for all one dimensional basis for
-    %                 evaluating CDF and inverse of the CDF
+    %               - Superclass for all diagonal maps
     %
     % diagonalMap Methods:
     %   eval_cdf    - Map from reference to uniform
