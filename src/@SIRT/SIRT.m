@@ -266,7 +266,7 @@ classdef SIRT < FTT
             % structures for SIRT. Need to run marginalise after this.
             %
             defaultRef      = 'uniform';
-            defaultTau      = 1E-6;
+            defaultTau      = 1E-8;
             defaultArg      = Lagrangep(2, 20, [-3,3]);
             defaultOption   = FTToption();
             defaultSampleSet = [];

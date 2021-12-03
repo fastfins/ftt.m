@@ -49,6 +49,7 @@ obj.n_layers = 0;
 obj.irts = cell(obj.max_layers, 1);
 obj.logz = 0;
 poly_counter = 1;
+als_iter = sirt_opt.max_als;
 while obj.n_layers < obj.max_layers
     %
     % reference samples
@@ -58,9 +59,11 @@ while obj.n_layers < obj.max_layers
             samples(i,:) = sample_domain(oneds{1}, ns);
         end
         ref = set_domain(obj.ref, oneds{poly_counter}.domain);
+        sirt_opt.max_als = max(2,als_iter);
     elseif obj.n_layers == 1
         samples = random(obj.ref, obj.d, ns);
         ref = obj.ref;
+        sirt_opt.max_als = als_iter;
     end
     % evaluate the map and the target function
     if obj.n_layers == 0

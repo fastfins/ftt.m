@@ -122,13 +122,13 @@ end
 if strcmp(obj.opt.tt_method, 'amen') && isempty(obj.res_w)
     if obj.direction < 0 % direction has already been flipped
         for k = 1:(obj.d-1)
-            obj.res_w{k} = randn(obj.opt.kick_rank, size(obj.cores{k},3));
+            obj.res_w{k} = ones(obj.opt.kick_rank, size(obj.cores{k},3));
         end
-        obj.res_w{obj.d} = randn(size(obj.cores{obj.d},1), obj.opt.kick_rank);
+        obj.res_w{obj.d} = ones(size(obj.cores{obj.d},1), obj.opt.kick_rank);
     else
-        obj.res_w{1} = randn(obj.opt.kick_rank, size(obj.cores{1},3));
+        obj.res_w{1} = ones(obj.opt.kick_rank, size(obj.cores{1},3));
         for k = 2:obj.d
-            obj.res_w{k} = randn(size(obj.cores{k},1), obj.opt.kick_rank);
+            obj.res_w{k} = ones(size(obj.cores{k},1), obj.opt.kick_rank);
         end
     end
 end
