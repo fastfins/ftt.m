@@ -216,16 +216,32 @@ classdef DIRT
             %
             % reconstruct oneds
             if isa(arg, 'cell')
-                for k = 1:length(arg)
-                    if ~isa(arg{k}, 'Oned')
-                        error('wrong type of argument')
-                    end
-                    oneds = arg;
+                % This should contain at most 2 cells: for levels 0 and 1
+                if (numel(arg)>2)
+                    warning('poly cells 3:%d are not used and will be ignored', numel(arg));
                 end
+                if (isa(arg{1}, 'Oned'))
+                    % Replicate the same poly, since build will assume
+                    % anisotropic bases always
+                    oneds{1} = repmat(arg(1), 1, d);
+                elseif (isa(arg{1}, 'cell'))
+                    assert(numel(arg{1})==d, 'Anisotropic level 0 poly contains %d elements instead of %d', numel(arg{1}), d);
+                    oneds{1} = arg{1};
+                else
+                    error('wrong level 0 poly argument')
+                end
+                assert(isa(arg{2}, 'Oned'), 'wrong level 1 poly argument');
+                oneds{2} = arg{2};
+%                 for k = 1:length(arg)
+%                     if ~isa(arg{k}, 'Oned')
+%                         error('wrong type of argument')
+%                     end
+%                     oneds = arg;
+%                 end
             elseif isa(arg, 'Oned')
                 % iniitialize the second polynomial using the first
                 oneds = cell(2,1);
-                oneds{1} = arg;
+                oneds{1} = repmat({arg}, 1, d);  % allow anisotropic build
                 if isa(arg, 'Lagrange1')
                     oneds{2} = feval(class(arg), arg.num_elems, obj.ref.domain); 
                 elseif isa(arg, 'Lagrangep')
@@ -233,10 +249,10 @@ classdef DIRT
                 else
                     oneds{2} = feval(class(arg), arg.order, obj.ref.domain);
                 end
-                elseif isa(arg, 'numeric') && length(arg) == 2
+            elseif isa(arg, 'numeric') && length(arg) == 2
                 % arg give the domain
                 oneds = cell(2,1);
-                oneds{1} = Lagrangep(2, 25, arg);
+                oneds{1} = repmat({Lagrangep(2, 25, arg)}, 1, d);  % allow anisotropic build
                 oneds{2} = Lagrangep(2, 25, obj.ref.domain);
             else
                 error('wrong type of argument')

@@ -84,7 +84,7 @@ for i = 2:N
     end
     %%%% end adapt
     
-    if mod(i,100)==0, fprintf('NUTS\t i=%d\t nmh=%d\n', i, nmh), end
+    if mod(i,10)==0, fprintf('NUTS\t i=%d\t nmh=%d\n', i, nmh), end
     
     %
     out.samples(:,i) = state.x;

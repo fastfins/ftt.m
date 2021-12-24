@@ -55,10 +55,12 @@ while obj.n_layers < obj.max_layers
     % reference samples
     if obj.n_layers == 0
         samples = zeros(obj.d, ns);
+        ref = cell(1,obj.d);
         for i=1:obj.d
-            samples(i,:) = sample_domain(oneds{1}, ns);
+            samples(i,:) = sample_domain(oneds{1}{i}, ns);
+            ref{i} = set_domain(obj.ref, oneds{1}{i}.domain);  % poly_counter
         end
-        ref = set_domain(obj.ref, oneds{poly_counter}.domain);
+%         ref = set_domain(obj.ref, oneds{1}{1}.domain);  % poly_counter
         sirt_opt.max_als = max(2,als_iter);
     elseif obj.n_layers == 1
         samples = random(obj.ref, obj.d, ns);
@@ -134,27 +136,27 @@ while obj.n_layers < obj.max_layers
             obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, obj.irts{obj.n_layers}, sirt_opt, ...
                 'reference', ref, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
         else
-            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, ...
-                'reference', ref, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));
+            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{obj.n_layers+1}, sirt_opt, ...
+                'reference', ref, 'debug_x', samples(:,ind2), 'sample_x', samples(:,ind1));  % poly_counter
         end
     else
         if obj.n_layers > 1
             obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, obj.irts{obj.n_layers}, sirt_opt, ...
                 'reference', ref, 'sample_x', samples(:,ind));
         else
-            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{poly_counter}, sirt_opt, ...
-                'reference', ref, 'sample_x', samples(:,ind));
+            obj.irts{obj.n_layers+1} =  SIRT(newf, obj.d, oneds{obj.n_layers+1}, sirt_opt, ...
+                'reference', ref, 'sample_x', samples(:,ind));   % poly_counter
         end
     end
     obj.logz = obj.logz + log(obj.irts{obj.n_layers+1}.z);
     obj.n_evals = obj.n_evals + obj.irts{obj.n_layers+1}.n_evals;
     obj.n_layers = obj.n_layers + 1;   
-    if poly_counter < length(oneds)
-        poly_counter = poly_counter + 1;
-    else
-        % This should be exactly 2: one for Lebesgue, another for Ref 
-        poly_counter = length(oneds);
-    end
+%     if poly_counter < length(oneds)
+%         poly_counter = poly_counter + 1;
+%     else
+%         % This should be exactly 2: one for Lebesgue, another for Ref 
+%         poly_counter = length(oneds);
+%     end
     
     % stop
     if abs(beta - 1) < 1E-10
