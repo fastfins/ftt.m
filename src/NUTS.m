@@ -1,4 +1,4 @@
-function out = NUTS(fun, x, N, M)
+function out = NUTS(fun, x, N, M, sigma)
 
 %   fun - Given as either a string or an inline function, returns the minus
 %         log target and its gradient
@@ -21,7 +21,9 @@ end
 % target acceptance probability
 delta = 0.8;
 % step size
-sigma = find_sigma(fun,state);
+if (nargin<5)||(isempty(sigma))
+    sigma = find_sigma(fun,state);
+end
 %
 mu = log(10) + sigma;
 sigmabar = 1;
@@ -82,7 +84,7 @@ for i = 2:N
     end
     %%%% end adapt
     
-    if mod(i,100)==0, disp(i), end
+    if mod(i,10)==0, fprintf('NUTS\t i=%d\t nmh=%d\n', i, nmh), end
     
     %
     out.samples(:,i) = state.x;

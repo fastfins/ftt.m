@@ -4,12 +4,16 @@ close all
 sig = 0.3;
 fun = @(z) joint_banana(z,sig);
 
-refmap = GaussReference(0,1,[-4,4]);
-%poly = Fourier(25, [-4, 4]); 
-poly = Lagrange1(60, [-4, 4]);
 opt = FTToption('max_als', 2, 'als_tol', 1E-8, 'local_tol', 1E-5, 'kick_rank', 2, 'init_rank', 30, 'max_rank', 30);
 if ~exist('irt')
-    irt = DIRT(fun, 3, poly, refmap, opt, 'ess_tol', 0.5); % the conditonal DIRT
+%     % Easy interface to (conditional) DIRT
+%     irt = DIRT(fun, 3, [-4, 4]);
+    
+    % Detailed anisotropic interface to DIRT
+    refmap = GaussReference(0,1,[-4,4]);
+    poly = {{Lagrange1(60, [-4, 4]), Lagrange1(58, [-4, 4]), Lagrange1(56, [-4, 4])}; 
+            Lagrange1(54, [-4, 4])};    
+    irt = DIRT(fun, 3, poly, refmap, opt, 'ess_tol', 0.5); % the conditonal DIRT        
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -160,12 +164,12 @@ for ii = 1:length(data)
     xx2 = xs2(2:3,:);
     toc
     tic; % Metropolized independence sampler
-    out3 = pCN(@(z) log_target_pullback_pcn(irt,fun,ry,z), init, nsteps, log(10));
+    out3 = pCN(@(z) log_target_pullback_pcn(irt,fun,ry,z), init, nsteps, log(2));
     xs3 = eval_irt(irt, [repmat(ry,1,size(out3.samples,2));out3.samples]);
     xx3 = xs3(2:3,:);
     toc
     tic; % negatively correlated pCN
-    out4 = pCN(@(z) log_target_pullback_pcn(irt,fun,ry,z), init, nsteps, log(2));
+    out4 = pCN(@(z) log_target_pullback_pcn(irt,fun,ry,z), init, nsteps, log(10));
     xs4 = eval_irt(irt, [repmat(ry,1,size(out4.samples,2));out4.samples]);
     xx4 = xs4(2:3,:);
     toc   
