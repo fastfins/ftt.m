@@ -167,7 +167,7 @@ classdef DIRT
             % Call FTT constructor to build the FTT and setup data
             % structures for SIRT. Need to run marginalise after this.
             % parsing inputs
-            defaultOption   = FTToption('max_als', 2);
+            defaultOption   = FTToption('max_als', 2, 'tt_method', 'random');
             defaultRef = GaussReference();
             defaultMethod   = 'Aratio';
             expectedMethod  = {'Eratio','Aratio'};
