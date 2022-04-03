@@ -92,6 +92,7 @@ classdef LagrangepCDF < Lagrangep & PiecewiseCDF
             [x,J] = domain2reference(obj.cheby,obj.cheby.nodes(:));
             b = eval_ref_int_basis(obj.cheby, x);
             obj.cdf_basis2node = b.*J;
+            %% 
         end       
         
         %{
