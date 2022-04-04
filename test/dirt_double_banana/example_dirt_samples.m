@@ -33,7 +33,7 @@ diag = GaussReference();
 poly = {Lagrangep(2,25,[-4,4]), Fourier(25, diag.domain)};
 airt = DIRT(fun,2,poly,diag,'betas',[0.01, 0.15, 1]);
 
-r = random(airt.ref, 2, 1E2);
+r = random(airt.ref, 2, 2E2);
 xr = eval_irt(airt, r);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,45 +58,46 @@ figure('position', [100, 100, 400, 400])
 
 figure('position', [100, 100, 400, 400])
 ref = exp(-0.5*sum(rts.^2,1));
-contour(rxs, rys, reshape(ref(:), n, n), 5, 'linewidth', 1, 'Color', grey)
+contour(rxs, rys, reshape(ref(:), n, n), 5, 'linewidth', 2, 'Color', grey)
 hold on
-scatter(r(1,:),r(2,:), '.', 'Color', blue);
+plot(r(1,:),r(2,:), '.', 'Color', blue, 'markersize', 20);
+plot(s(1,:),s(2,:), '.', 'Color', red, 'markersize', 20);
 set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('$\mu$', 'interpreter', 'latex', 'fontsize', 20)
-axis([-2, 2, -2, 2]*1.1)
+%title('$\mu$', 'interpreter', 'latex', 'fontsize', 20)
+axis([-2, 2, -2, 2])
 
 figure('position', [100, 100, 400, 400])
 [mllkd, mlp] = fun(rts);
 bf = exp(-mllkd-mlp);
 const = 64/n^2;
 bf = bf/(sum(bf(:))*const);
-contour(rxs, rys, reshape(bf(:), n, n), 5, 'linewidth', 1, 'Color', grey)
+contour(rxs, rys, reshape(bf(:), n, n), 5, 'linewidth', 2, 'Color', grey)
 hold on
-scatter(xr(1,:),xr(2,:), '.', 'Color', blue);
+plot(xr(1,:),xr(2,:), '.', 'Color', blue, 'markersize', 20);
 set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('$\pi$', 'interpreter', 'latex', 'fontsize', 20)
-axis([-2, 2, -2, 2]*1.1)
+%title('$\pi$', 'interpreter', 'latex', 'fontsize', 20)
+axis([-1.5, 1.5, -1, 2])
 
 figure('position', [100, 100, 400, 400])
 ref = exp(-0.5*sum(rts.^2,1));
-contour(rxs, rys, reshape(ref(:), n, n), 5, 'linewidth', 1, 'Color', grey)
+contour(rxs, rys, reshape(ref(:), n, n), 5, 'linewidth', 2, 'Color', grey)
 hold on
-scatter(s(1,:),s(2,:), '.', 'Color', blue);
+plot(s(1,:),s(2,:), '.', 'Color', red, 'markersize', 20);
 set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('$\mu$', 'interpreter', 'latex', 'fontsize', 20)
-axis([-2, 2, -2, 2]*1.1)
+%title('$\mu$', 'interpreter', 'latex', 'fontsize', 20)
+axis([-2, 2, -2, 2])
 
 figure('position', [100, 100, 400, 400])
 [mllkd, mlp] = fun(rts);
 bf = exp(-mllkd-mlp);
 const = 64/n^2;
 bf = bf/(sum(bf(:))*const);
-contour(rxs, rys, reshape(bf(:), n, n), 5, 'linewidth', 1, 'Color', grey)
+contour(rxs, rys, reshape(bf(:), n, n), 5, 'linewidth', 2, 'Color', grey)
 hold on
-scatter(xs(1,:),xs(2,:), '.', 'Color', blue);
+plot(xs(1,:),xs(2,:), '.', 'Color', red, 'markersize', 20);
 set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('$\pi$', 'interpreter', 'latex', 'fontsize', 20)
-axis([-2, 2, -2, 2]*1.1)
+%title('$\pi$', 'interpreter', 'latex', 'fontsize', 20)
+axis([-1.5, 1.5, -1, 2])
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
