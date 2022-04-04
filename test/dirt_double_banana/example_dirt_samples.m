@@ -14,6 +14,20 @@ purple = '#7E2F8E';
 grey = [0.7, 0.7, 0.7];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+nsteps = 2^10;
+init = [0.9; 1];
+tic;
+out1 = NUTS(@(x) log_target(x,dat,sig,1), init, nsteps);
+xx1 = out1.samples;
+toc
+
+init = [-0.9; -0.5];
+tic;
+out2 = NUTS(@(x) log_target(x,dat,sig,1), init, nsteps);
+xx2 = out2.samples;
+toc
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 diag = GaussReference();
 poly = {Lagrangep(2,25,[-4,4]), Fourier(25, diag.domain)};
@@ -97,7 +111,6 @@ mlp = 0.5*sum(u.^2,1);
 
 end
 
-
 function f = fun_banana2(u, data, sigma, beta)
 
 F   = log((1-u(1,:)).^2 + 100*(u(2,:)-u(1,:).^2).^2);
@@ -106,5 +119,22 @@ mlp = 0.5*sum(u.^2,1);
 f = exp(-mllkd-mlp);
 %lpt = -sum((F-data).^2,1)*beta/(2*sigma^2) - sum(u.^2,1)*beta/2;%
 %p   = exp(lpt);
+
+end
+
+function [mlf,gmlf] = log_target(u,data,sigma,beta)
+
+F   = log( (1-u(1,:)).^2 + 100*(u(2,:)-u(1,:).^2).^2 );
+mllkd = sum((F-data).^2,1)*beta/(2*sigma^2);
+mlp = 0.5*sum(u.^2,1);
+
+mlf = mllkd + mlp;
+
+gmlp = u;
+tmp = [2*(u(1,:)-1)+400*(u(1,:).^2-u(2,:)).*u(1,:); 200*(u(2,:)-u(1,:).^2)]...
+    ./( (1-u(1,:)).^2 + 100*(u(2,:)-u(1,:).^2).^2 );
+gmllkd = (F-data(1)).*tmp*beta/sigma^2 + (F-data(2)).*tmp*beta/sigma^2;
+
+gmlf = gmllkd+gmlp;
 
 end
