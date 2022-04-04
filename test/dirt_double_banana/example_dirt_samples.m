@@ -16,7 +16,7 @@ grey = [0.7, 0.7, 0.7];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
 nsteps = 2^10;
-init = [0.9; 1];
+init = [1.2; 1.5];
 tic;
 out1 = NUTS(@(x) log_target(x,dat,sig,1), init, nsteps);
 xx1 = out1.samples;
@@ -53,24 +53,28 @@ rxs = linspace(airt.ref.domain(1), airt.ref.domain(2), n);
 rys = linspace(airt.ref.domain(1), airt.ref.domain(2), n);
 [xx,yy] = meshgrid(rxs, rys);
 rts = [xx(:), yy(:)]';
-
-figure('position', [100, 100, 400, 400])
-
-figure('position', [100, 100, 400, 400])
+%
 ref = exp(-0.5*sum(rts.^2,1));
+%
+[mllkd, mlp] = fun(rts);
+bf = exp(-mllkd-mlp);
+const = 64/n^2;
+bf = bf/(sum(bf(:))*const);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figure('position', [100, 100, 400, 400])
+
+figure('position', [100, 100, 400, 400])
 contour(rxs, rys, reshape(ref(:), n, n), 5, 'linewidth', 2, 'Color', grey)
 hold on
 plot(r(1,:),r(2,:), '.', 'Color', blue, 'markersize', 20);
-plot(s(1,:),s(2,:), '.', 'Color', red, 'markersize', 20);
+%plot(s(1,:),s(2,:), '.', 'Color', red, 'markersize', 20);
 set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
 %title('$\mu$', 'interpreter', 'latex', 'fontsize', 20)
 axis([-2, 2, -2, 2])
 
 figure('position', [100, 100, 400, 400])
-[mllkd, mlp] = fun(rts);
-bf = exp(-mllkd-mlp);
-const = 64/n^2;
-bf = bf/(sum(bf(:))*const);
 contour(rxs, rys, reshape(bf(:), n, n), 5, 'linewidth', 2, 'Color', grey)
 hold on
 plot(xr(1,:),xr(2,:), '.', 'Color', blue, 'markersize', 20);
@@ -79,7 +83,6 @@ set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
 axis([-1.5, 1.5, -1, 2])
 
 figure('position', [100, 100, 400, 400])
-ref = exp(-0.5*sum(rts.^2,1));
 contour(rxs, rys, reshape(ref(:), n, n), 5, 'linewidth', 2, 'Color', grey)
 hold on
 plot(s(1,:),s(2,:), '.', 'Color', red, 'markersize', 20);
@@ -88,13 +91,20 @@ set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
 axis([-2, 2, -2, 2])
 
 figure('position', [100, 100, 400, 400])
-[mllkd, mlp] = fun(rts);
-bf = exp(-mllkd-mlp);
-const = 64/n^2;
-bf = bf/(sum(bf(:))*const);
 contour(rxs, rys, reshape(bf(:), n, n), 5, 'linewidth', 2, 'Color', grey)
 hold on
 plot(xs(1,:),xs(2,:), '.', 'Color', red, 'markersize', 20);
+set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
+%title('$\pi$', 'interpreter', 'latex', 'fontsize', 20)
+axis([-1.5, 1.5, -1, 2])
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figure('position', [100, 100, 400, 400])
+contour(rxs, rys, reshape(bf(:), n, n), 5, 'linewidth', 2, 'Color', grey)
+hold on
+plot(xx1(1,1:50),xx1(2,1:50), '.-', 'Color', red,  'markersize', 10, 'LineWidth', 0.5);
+plot(xx2(1,1:50),xx2(2,1:50), '.-', 'Color', blue, 'markersize', 10, 'LineWidth', 0.5);
 set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
 %title('$\pi$', 'interpreter', 'latex', 'fontsize', 20)
 axis([-1.5, 1.5, -1, 2])
