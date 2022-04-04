@@ -67,7 +67,7 @@ contour(rxs, rys, reshape(ref(:), n, n), 5, 'linewidth', 2, 'Color', blue)
 %xlabel('$u_1$', 'interpreter', 'latex', 'fontsize', 20)
 %ylabel('$u_2$', 'interpreter', 'latex', 'fontsize', 20)
 set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('$\mu$', 'interpreter', 'latex', 'fontsize', 20)
+%title('$\mu$', 'interpreter', 'latex', 'fontsize', 20)
 axis([-2, 2, -2, 2]*1.1)
 
 for k = 1:airt.n_layers
@@ -80,11 +80,11 @@ for k = 1:airt.n_layers
     %xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 20)
     %ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 20)
     set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-    if k == airt.n_layers
-    title(['$\pi_' num2str(k-1) '=\pi$'], 'interpreter', 'latex', 'fontsize', 20)
-    else
-    title(['$\pi_' num2str(k-1) '$'], 'interpreter', 'latex', 'fontsize', 20)
-    end
+    %if k == airt.n_layers
+    %title(['$\pi_' num2str(k-1) '=\pi$'], 'interpreter', 'latex', 'fontsize', 20)
+    %else
+    %title(['$\pi_' num2str(k-1) '$'], 'interpreter', 'latex', 'fontsize', 20)
+    %end
     colormap default
     axis([-2, 2, -2, 2]*1.1)
 end
@@ -110,7 +110,7 @@ figure('position', [100, 100, 400, 400])
 ref = exp(-0.5*sum(rts.^2,1));
 contour(rxs, rys, reshape(ref(:), n, n), 5, 'linewidth', 1, 'Color', blue)
 set(gca, 'fontsize', 20, 'TickLabelInterpreter','latex')
-title('$\mu$', 'interpreter', 'latex', 'fontsize', 20)
+%title('$\mu$', 'interpreter', 'latex', 'fontsize', 20)
 axis([-2, 2, -2, 2]*1.1)
 
 figure('position', [100, 100, 400, 400])
