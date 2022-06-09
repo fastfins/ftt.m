@@ -27,6 +27,8 @@ tic;
 out2 = NUTS(@(x) log_target(x,dat,sig,1), init, nsteps);
 xx2 = out2.samples;
 toc
+
+return
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 diag = GaussReference();
