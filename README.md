@@ -1,4 +1,6 @@
 
+The continous development of this package can be found at https://github.com/DeepTransport/deep-tensor
+
 Updated on 07/11/2021. 
 
 * Load the folder 'src' and its subfolders. 
